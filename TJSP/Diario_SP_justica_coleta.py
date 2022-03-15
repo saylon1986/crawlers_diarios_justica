@@ -32,6 +32,7 @@ def downloads_done(path_final):
 	print()
 	print("estamos verificando na pasta:", path_final)
 	cont = 0
+	desist = 0
 	while True:
 		if cont >= 5:
 			break
@@ -52,6 +53,9 @@ def downloads_done(path_final):
 						cont = cont+1
 						print("Ainda falta(m)", 5-cont,"arquivos")
 						print("---------------")
+						desist = desist + 1
+						if desist == 4:
+							cont = 5
 					
 	print("downloads finalizados")
 	return
