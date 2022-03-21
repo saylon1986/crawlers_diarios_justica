@@ -33,36 +33,45 @@ import time
 
 #######################################################################################################################
 
-def Separar_textos_paginas(nome, arquivo, pasta):
+def Separar_textos_paginas():
+	diret = input("insira o diretório com as pastas:")
 
-	# print(nome)
-	# z = input("")
-	with fitz.open(nome) as pdf:
-		num_pag = 1
-		textos_paginas =[]
-		numeros_paginas =[]
-		nome_doc = []
-		nomes_pastas =[]
-		for pagina in pdf:
-			texto = pagina.getText()
-			textos_paginas.append(texto)
-			numeros_paginas.append(num_pag)
-			nome_doc.append(arquivo)
-			nomes_pastas.append(pasta)
-			num_pag = num_pag+1
-	    
-	df_textos_paginas = pd.DataFrame()    
-	df_textos_paginas["textos_paginas"] = textos_paginas
-	df_textos_paginas["numeros_paginas"] = numeros_paginas
-	df_textos_paginas["nome_documento"] = nome_doc
-	df_textos_paginas["nomes_pastas"] = nomes_pastas
-	# print(df_textos_paginas)
-	# df_textos_paginas.to_excel("diario_cortado.xlsx", index = False)
-	# data_frames.append(df_textos_paginas)
+	pastas = os.listdir(diret)
+
+	data_frames=[]	
+	for b in tqdm(range(1)):#len(pastas))):
+		nome_pasta = os.path.join(diret, pastas[b])
+		arquivos = os.listdir(nome_pasta)
+		for a in range(len(arquivos)):
+			print(arquivos[a])
+			nome = os.path.join(nome_pasta, arquivos[a])
+			# print(nome)
+			# z = input("")
+			textos_paginas =[]
+			numeros_paginas =[]
+			nome_doc = []
+			nomes_pastas =[]
+			with fitz.open(nome) as pdf:
+			    num_pag = 1
+			    for pagina in pdf:
+			        texto = pagina.getText()
+			        textos_paginas.append(texto)
+			        numeros_paginas.append(num_pag)
+			        nome_doc.append(arquivos[a])
+			        nomes_pastas.append(pastas[b])
+			        num_pag = num_pag+1
+			    df_textos_paginas = pd.DataFrame()    
+			    df_textos_paginas["textos_paginas"] = textos_paginas
+			    df_textos_paginas["numeros_paginas"] = numeros_paginas
+			    df_textos_paginas["nome_documento"] = nome_doc
+			    df_textos_paginas["nomes_pastas"] = nomes_pastas
+			    # print(df_textos_paginas)
+			    # df_textos_paginas.to_excel("diario_cortado.xlsx", index = False)
+			    data_frames.append(df_textos_paginas)
 
 	
-	# print("temos",len(df_textos_paginas),"data Frames")	    
-	return df_textos_paginas
+	print("temos",len(data_frames),"data Frames")	    
+	return data_frames
 
 
 ################################################################################################################
@@ -203,11 +212,10 @@ def Cortar_publicacoes(df_textos_paginas):
 						publis_erros.append(publis[o])
 						print("publicação", o)
 						print("da página", num_pag)
-						print("contem um erro")
 						paginas_erros.append(num_pag)
 						datas_erros.append(data)
 						docs_errados.append(doc)
-						# z = input("verificar")
+						z = input("verificar")
 
 				else:
 					continuacao = publis[o]
@@ -227,146 +235,83 @@ def Cortar_publicacoes(df_textos_paginas):
 
 	return trechos_certos, numeros_certos, datas, numeros_paginas, docs_certos, paginas_erros, publis_erros, datas_erros, docs_errados, pastas
 
-##############################################################################################################
-
-def Separacao(df):
-	
-	termos_1 = "prisão domiciliar|residência particular"
-	termos_2 = "doença grave|moléstia grave|(70|80) anos|gestante(s)|gr(á|a)vida"
-	termos_3 = "pena(l|is)|CPP|LEP|pena"
-	indexes_ruins =[]
-	# print("o DF tinha", len(df["Publicação"]))
-
-	for i, texto_publi in enumerate(df["Publicação"]):
-		if re.search(termos_1, texto_publi,re.IGNORECASE):
-			if re.search(termos_2, texto_publi,re.IGNORECASE): 
-				if re.search(termos_3, texto_publi,re.IGNORECASE):
-					pass
-				else:
-					indexes_ruins.append(i)	
-			else:
-				indexes_ruins.append(i)		
-		else:
-			indexes_ruins.append(i)		
-
-
-	df = df.drop(indexes_ruins)
-	# print("agora o DF tem", len(df["Publicação"]))
-	return df		
-
 
 
 # ################################################### ***********  ###########################################
 
 def Main_Separacao():
 
-	
 	anterior_certos = pd.DataFrame()
 	anterior_errados = pd.DataFrame()
 
-	diret = input("insira o diretório com as pastas:")
 
-	pastas = os.listdir(diret)
-	# pastas = pastas_x[0:3]
-	# pastas.sort()
-	# print(pastas)
+	# Separar_textos_paginas()
+	data_frames = Separar_textos_paginas()
+	
 
-	# data_frames=[]	
-	for pasta in tqdm(pastas):#len(pastas))):
-		print("*************************************")
-		print()
-		print("estamos na pasta", pasta)
-		print()
-		print("*************************************")
-		# z = input("")
 
-		# '''
-		nome_pasta = os.path.join(diret, pasta)
-		arquivos = os.listdir(nome_pasta)
-		for a in range(len(arquivos)):
+	for m in tqdm(range(len(data_frames))):
+		trechos_certos, numeros_certos, datas, numeros_paginas, docs_certos, paginas_erros, publis_erros, datas_erros, docs_errados, pastas = Cortar_publicacoes(data_frames[m])
+
+
+		#criando o objeto dataframe
+		df_certos = pd.DataFrame()
+		r = pd.Series(numeros_certos)
+		y = pd.Series(trechos_certos)
+		x = pd.Series(numeros_paginas)
+		h = pd.Series(docs_certos)
+		i = pd.Series(pastas)
+		g = pd.Series(datas)
+		df_certos = pd.concat([r,y,x,h,i,g], axis=1,keys=["Número do Processo","Publicação","Numero da página","Nome do documento", "Nome da Pasta","Data do diário"])
+
+		
+		# ajuste da data
+
+		cortados = df_certos["Data do diário"].str.split(",", n =1, expand = True)
+
+		df_certos ["Dia da semana"] = cortados [0]
+
+		frag = cortados[1].str.split("de", n=2, expand = True)
+
+		df_certos ["Dia"] = frag[0]
+		df_certos ["Mês"] = frag[1]
+		df_certos ["Ano"] = frag[2]
+		df_certos ["Estado"] = "SP"
+		df_certos["Instância"] = np.where(df_certos["Nome do documento"].str.contains("2ªInstancia"), "2ª Instancia", "1ª Instancia")
+
+		#############################
+		
+		if len(anterior_certos) > 1:
 			try:
-				print(arquivos[a])
-				nome = os.path.join(nome_pasta, arquivos[a])
-
-				# Separar_textos_paginas()
-				data_frames = []
-				data_frame = Separar_textos_paginas(nome, arquivos[a], pasta)
-				data_frames.append(data_frame)
-
-
-				for m in range(len(data_frames)):
-					trechos_certos, numeros_certos, datas, numeros_paginas, docs_certos, paginas_erros, publis_erros, datas_erros, docs_errados, pastas = Cortar_publicacoes(data_frames[m])
-
-
-					#criando o objeto dataframe
-					df_certos = pd.DataFrame()
-					r = pd.Series(numeros_certos)
-					y = pd.Series(trechos_certos)
-					x = pd.Series(numeros_paginas)
-					h = pd.Series(docs_certos)
-					i = pd.Series(pastas)
-					g = pd.Series(datas)
-					df_certos = pd.concat([r,y,x,h,i,g], axis=1,keys=["Número do Processo","Publicação","Numero da página","Nome do documento", "Nome da Pasta","Data do diário"])
-
-					
-					# ajuste da data
-
-					cortados = df_certos["Data do diário"].str.split(",", n =1, expand = True)
-
-					df_certos ["Dia da semana"] = cortados [0]
-
-					frag = cortados[1].str.split("de ", n=2, expand = True)
-
-					df_certos ["Dia"] = frag[0]
-					df_certos ["Mês"] = frag[1]
-					df_certos ["Ano"] = frag[2]
-					df_certos ["Estado"] = "SP"
-					df_certos["Instância"] = np.where(df_certos["Nome do documento"].str.contains("2ªInstancia"), "2ª Instancia", "1ª Instancia")
-
-					#############################
-					
-
-					separados = Separacao(df_certos)
-
-
-
-					if len(anterior_certos) >= 1:
-						try:
-							anterior_certos = pd.concat([separados,anterior_certos])
-							print("temos", len(anterior_certos), "certos")
-					
-						except:
-							anterior_certos.to_excel("Diarios_publicacoes_separados_2021_.xlsx", index = False)
-							print("erro no DF", m)
-					else:
-						anterior_certos = separados
+				anterior_certos = pd.concat([df_certos,anterior_certos])
+				# print("temos", len(anterior_certos), "certos")
+		
 			except:
-				print(" **********  ")
-				print()
-				print("erro na pasta", pasta,"e no arquivo:", arquivos[a])
-				print()
-				print(" **********  ")
-				pass			
-		
-	try:
-		antigos = pd.read_excel("Diarios_publicacoes_separados_2021_.xlsx", engine ='openpyxl')
-		# print("Já temos a planilha certos!")
-		# print(anterior_certos)
-		# print()
-		# print()
-		# print()
-		# print(df_certos)
-		# print()
-		# print()
-		# print()
-		anterior_certos = pd.concat([antigos,anterior_certos])
-		# print(df_certos)
-		anterior_certos.to_excel("Diarios_publicacoes_separados_2021_.xlsx", index = False)
-	except:
-		anterior_certos.to_excel("Diarios_publicacoes_separados_2021_.xlsx", index = False)
-		
+				anterior_certos.to_excel("Diarios_publicacoes.xlsx", index = False)
+				print("erro no DF", m)
+		else:
+			anterior_certos = df_certos	
 
-	# anterior_certos.to_excel("Diarios_publicacoes_separados.xlsx", index = False)
-			
-# '''
+		df_errados = pd.DataFrame()
+		r = pd.Series(paginas_erros)
+		y = pd.Series(publis_erros)
+		x = pd.Series(datas_erros)
+		g = pd.Series(docs_errados)
+		df_errados = pd.concat([r,y,x,g], axis=1,keys=["Numero da página","Publicação","Data","Nome do documento"])
+
+
+		if len(anterior_errados) > 1:
+			try:
+				anterior_errados = pd.concat([df_errados,anterior_errados])
+				# print("temos", len(anterior_errados), "errados")
+				
+			except:
+				anterior_errados.to_excel("Erros_publicacoes.xlsx", index = False)	
+
+		else:
+			anterior_errados = df_errados	
+
+	anterior_certos.to_excel("Diarios_publicacoes.xlsx", index = False)
+	anterior_errados.to_excel("Erros_publicacoes.xlsx", index = False)		
+
 Main_Separacao()
