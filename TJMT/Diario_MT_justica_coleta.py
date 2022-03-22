@@ -19,7 +19,6 @@ import shutil
 import time
 import datetime
 from datetime import date
-from workalendar.america import Brazil
 import shutil
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -71,12 +70,14 @@ def Baixar_diarios(ano, datas, cadernos, quantidade):
 	dir_path = str(os.path.dirname(os.path.realpath(__file__)))
 	path = dir_path + f'\Diarios_MT_'+ano
 	Path(path).mkdir(parents=True, exist_ok=True)
-
+	print(datas)
+	print()
+	print(cadernos)
 
 
 	chromedriver_path = Path(str(Path(__file__).parent.resolve()) + '\software\chromedriver.exe')
-	mes = datas[0][5:7]
-	dia = datas[0][8:10]
+	mes = str(datas[0][5:7])
+	dia = str(datas[0][8:10])
 	data = dia+"-"+mes+"-"+ano
 	path_final = dir_path + f'\Diarios_MT_'+ano+'\\'+data
 	Path(path_final).mkdir(parents=True, exist_ok=True)
@@ -88,9 +89,15 @@ def Baixar_diarios(ano, datas, cadernos, quantidade):
 	options.add_experimental_option('excludeSwitches', ['enable-logging'])
 	driver = webdriver.Chrome(executable_path = chromedriver_path, options=options)
 	ua = UserAgent()
-	for caderno in cadernos:
-		driver.get("https://dje-api.tjmt.jus.br/api/diarioOficial/documento/"+caderno)
-		time.sleep(3)
+	# print()
+	# print()
+	# print()
+	for nome in cadernos:
+		nome = str(nome)
+		if len(nome) > 5:
+			print(nome)
+			driver.get("https://dje-api.tjmt.jus.br/api/diarioOficial/documento/"+nome)
+			time.sleep(3)
 
 	downloads_done(path_final, quantidade)
 	driver.quit()
@@ -99,12 +106,6 @@ def Baixar_diarios(ano, datas, cadernos, quantidade):
 #########################################
 
 
-# fazer um código que gera os txt dos json por ano
-# salvar esses txt com os nomes dos anos
-
-
-#############################################
-
 def ler_json(url):
 	
 	# url = "https://dje-api.tjmt.jus.br/api/diarioOficial/edicoes?periodoDataDe=2019-01-01T02:00:00.000Z&periodoDataAte=2019-12-31T03:00:00.000Z&indicePagina=0&quantidadePagina=242"
@@ -112,8 +113,6 @@ def ler_json(url):
 	soup = BeautifulSoup(html,'html.parser')
 	info = json.loads(soup.text)
 
-
-# função aqui que lê esses txt e separa as datas e o nome dos cadernos
 	
 	
 	list_cadernos = []
@@ -139,8 +138,8 @@ def ler_json(url):
 		list_quantidade.append(quantidade)
 
 	# print(list_cadernos)
-	print(list_date_list)
-	print(list_quantidade)	
+	# print(list_date_list)
+	# print(list_quantidade)	
 	return list_cadernos, list_date_list, list_quantidade
 
 #############################################
