@@ -111,12 +111,13 @@ def Separar_textos_paginas():
 							# z= input("")
 
 
+					##  Problemas:
+							
 					########## precisa fazer uma função pra limpar os cabeçalhos!!!
-					##### na primeira página começa no 11
-					######## nas demais começa no 2 
 					### fazer o ajuste na numeração
+					#### pensar o que fazer nos casos que cada seção é uma linha e que estão sendo eliminados
 
-									###ideia: cortar as listas vlrs, txts no 70 e no 56, 301-317 e deixar os demais resíduos juntos	
+							
 
 	Juntar_blocks(numeros_paginas,nome_doc, nomes_pastas, vlrs_unific, txt_unific)								
 	return numeros_paginas,	nome_doc, nomes_pastas,	vlrs_unific, txt_unific
