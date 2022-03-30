@@ -34,8 +34,8 @@ dir_path = str(os.path.dirname(os.path.realpath(__file__)))
 def gerar_numeros():
 	
 	lista_num =[]
-	inicio = 3049  # documento inicial disponível
-	fim = 3049 # documento final disponível
+	inicio = 2095  # documento inicial disponível
+	fim = 3001# documento final disponível
 
 	atual = inicio
 	for k in range(inicio, fim+1):
