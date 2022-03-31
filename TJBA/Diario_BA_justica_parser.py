@@ -45,6 +45,7 @@ def Separar_textos_paginas():
 	nome_doc = []
 	nomes_pastas =[]
 	vlrs_unific= []
+	flags = []
 	txt_unific = []
 	sem_lines = []
 
@@ -67,12 +68,12 @@ def Separar_textos_paginas():
 				# print()
 				# print()
 				# print("                        Página", num_pag,"                ")
-				# print(                   "tamanho da lista:", len(txt_unific))
-				# print(txt_unific)
-				# print(nome_doc)
-				# print(nomes_pastas)
-				# print(vlrs_unific)
-				# print(numeros_paginas)
+				# # print(                   "tamanho da lista:", len(txt_unific))
+				# # print(txt_unific)
+				# # print(nome_doc)
+				# # print(nomes_pastas)
+				# # print(vlrs_unific)
+				# # print(numeros_paginas)
 				# print()
 				# print()
 				# print("               --------------------------------")
@@ -84,71 +85,77 @@ def Separar_textos_paginas():
 					# print("--------------------")
 					# print('nesta página temos',len(blocks)," blocos")		
 					# print('Estamos no blocos', blocks[o]["number"])
-					# # print(blocks[o])
-					numeros_paginasp =[]
-					nome_docp = []
-					nomes_pastasp =[]
-					vlrs_unificp = []
+					# print(blocks[o])
+					# z = input("")
+					
+					
 					txt_unificp = []		
 					try:
 						lines = blocks[o]["lines"]
 						# print("neste bloco temos", len(lines),"linhas")
-						if len(lines) > 0: #### eliminar essa regra depois de fazer o limpador dos cabeçalhos
-							for x in range(len(lines)):
-								spans = lines[x]["spans"]
-								# print("nessa linha temos", len(spans),"spans")
-								textos =[]
-								for u in spans:
-									# if u['size'] == 9.0 and u['flags'] == 0:
-										# print(u['text'])
-									numeros_paginasp.append(num_pag)
-									textos.append(u['text'].strip())
-										# z = input("")
-
-									# te = str(u['bbox'][0])
-									# ta = te.split(".")
-									# dist = int(ta[0])
+						textos = []
+						for x in range(len(lines)):
+							spans = lines[x]["spans"]
+							# print("nessa linha temos", len(spans),"spans")
+							for u in spans:
+								flag = str(u['flags'])
+								tam = str(u["size"])
+								tam = tam.split(".")
+								te = str(u['bbox'][0])
+								ta = te.split(".")
+								dist = int(ta[0])
+								if tam [0] == "9" and flag == "0" and dist == 42:
+									## colocar na unificação provisória e depois na final, texto da publi já vai separado
+									txt_unificp.append(u['text'].strip())
 									# vlrs_unific.append(dist)
-									# nomes_pastasp.append(nome_pasta)
-									# nome_docp.append(arquivos[a])
-									# z = input("")
-								try:
-									textos = " ".join(textos)
-									txt_unificp.append(textos)
-								except:
-									pass
+									# numeros_paginas.append(num_pag)
+									# nome_doc.append(nome_pasta)
+						# print(txt_unificp)
+						# z = input("")
+						# print(vlrs_unific)
+						# print("-------------")
+						# z = input("")
+							# try:
+							# 	textos = " ".join(textos)
+							# 	txt_unificp.append(textos)
+							# except:
+							# 	pass
 
 
-						txt_unificp = " ".join(txt_unificp)			
-						txt_unific.append(txt_unificp)
-						numeros_paginas.append(numeros_paginasp)
-						nomes_pastas.append(nomes_pastasp)
-						nome_doc.append(nome_docp)
+						txt_unificp = " ".join(txt_unificp)
+						if len(txt_unificp) > 150: #### pensar melhor nessa regra, talvez o critério melhor seja unificar com o anterior ou posterior			
+							txt_unific.append(txt_unificp)
+							numeros_paginas.append(num_pag)
+							# nomes_pastas.append(nomes_pastas)
+							nome_doc.append(nomes_pasta)
 					
 					except:
-						# print('nesta página temos',len(blocks)," blocos")		
-						# print('Estamos no blocos', blocks[o]["number"])
-						# print(blocks[o]["number"])
+						# print("deu algum erro")
 						sem_lines.append(blocks[o]["number"])
-						# print("não tem lines")
-						# print()
-						# print("-----------------")
-						# z= input("")
-
+			
 
 						
 				
 				##  Problemas:
-						
-				########## precisa fazer uma função pra limpar os cabeçalhos!!!
-				### fazer o ajuste na numeração
-				#### pensar o que fazer nos casos que cada seção é uma linha e que estão sendo eliminados
+				
+				### verificar a numeração
 				#### ver com o Gui como pegar os cadernos separados pra não ter o aDM
 
-						
-	for item in txt_unific:
-		print(item)
-		z = input("")			
+	
+	# df_textos_paginas = pd.DataFrame()    
+	# df_textos_paginas["valores"] = vlrs_unific
+
+
+	# df_textos_paginas = pd.DataFrame(df_textos_paginas.groupby(["valores"])["valores"].count())
+	# df_textos_paginas.columns = ["quantidade"]
+
+
+	# df_textos_paginas = df_textos_paginas.reset_index()
+	# df_textos_paginas.to_excel("Quantidade_prgf.xlsx", index = False)
+	# for item in txt_unific:
+	# 	print(item)
+	# 	print("-----------------")
+	# 	z = input("")			
 
 
 	# Juntar_blocks(numeros_paginas,nome_doc, nomes_pastas, vlrs_unific, txt_unific)								
