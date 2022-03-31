@@ -22,8 +22,7 @@ Já que nesse casos eles já estão organizados da forma correta.
 
 #### Ajustes:
 
-1. Na coleta: fazer o ajuste das pastas serem geradas com o ano automaticamente.
-2. No Parser: publicações que excedem mais de uma página
+1. No Parser: publicações que excedem mais de uma página
 
 
 
