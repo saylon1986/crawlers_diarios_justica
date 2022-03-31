@@ -34,10 +34,10 @@ def downloads_done(path_final):
 	cont = 0
 	desist = 0
 	while True:
-		if cont >= 5:
+		if cont == 5 or desist == 8:
 			break
 		else:
-			print("aguardando 20 seg")
+			print("aguardando 15 seg")
 			print("-----")
 			time.sleep(20)
 			cont = 0
@@ -48,14 +48,13 @@ def downloads_done(path_final):
 			else:
 				for i in os.listdir(path_final):
 					nome = str(i)
-					if ".crdownload" not in nome:
-						# print(i," finalizado")
+					if nome[-3:] == "pdf":
 						cont = cont+1
-						print("Ainda falta(m)", 5-cont,"arquivos")
-						print("---------------")
-						desist = desist + 1
-						if desist == 4:
-							cont = 5
+						# print("temos", cont, "arquivos baixados")
+				desist = desist + 1
+
+				print("Ainda falta(m)", 5-cont,"arquivos")
+				print("---------------")
 					
 	print("downloads finalizados")
 	return
@@ -65,9 +64,9 @@ def downloads_done(path_final):
 
 def Baixar_diarios(datas):
 
-
+	ano = str(datas[0][-4:])
 	dir_path = str(os.path.dirname(os.path.realpath(__file__)))
-	path = dir_path + f'\Diarios_SP_2021'
+	path = dir_path + f'\Diarios_SP_'+ano
 	Path(path).mkdir(parents=True, exist_ok=True)
     
 	cadernos = ["11", "12", "13", "15","18"]
@@ -76,7 +75,7 @@ def Baixar_diarios(datas):
 	for data in datas:
 		chromedriver_path = Path(str(Path(__file__).parent.resolve()) + '\software\chromedriver.exe')
 		data_pasta = data.replace("/","-")
-		path_final = dir_path + f'\Diarios_SP_2021\\'+data_pasta
+		path_final = dir_path + f'\Diarios_SP_'+ano+'\\'+data_pasta
 		Path(path_final).mkdir(parents=True, exist_ok=True)
 		options = Options()
 		prefs = {'download.default_directory' : path_final}
@@ -105,7 +104,7 @@ def Gera_dias_uteis():
 	data_final = input("digite a data final(mm-dd-aaaa): ")
 
 	date_list = pd.date_range(start= data_inicial, end = data_final)
-	print(date_list)
+	# print(date_list)
 
 	ano = int(date_list[0].strftime("%Y"))
 	# print("o ano é", ano)
@@ -123,8 +122,7 @@ def Gera_dias_uteis():
 			# print("date:",data)
 			datas.append(data)
 
-	print(datas)
-	# z = input("")
+	# print(datas)
 	return datas
 
 
