@@ -33,7 +33,7 @@ def downloads_done(path_final, quantidade):
 	cont = 0
 	desist = 0
 	while True:
-		if cont >= quantidade:
+		if cont == quantidade:
 			break
 		else:
 			print("aguardando 15 seg")
@@ -47,14 +47,16 @@ def downloads_done(path_final, quantidade):
 			else:
 				for i in os.listdir(path_final):
 					nome = str(i)
-					if ".crdownload" not in nome:
-						# print(i," finalizado")
+					if nome[-3:] == "pdf":
 						cont = cont+1
-						print("Ainda falta(m)", quantidade-cont,"arquivos")
-						print("---------------")
-						desist = desist + 1
-						if desist == (quantidade+1):
-							cont = quantidade
+						# print("temos", cont, "arquivos baixados")
+				desist = desist + 1
+				if desist == (quantidade+2):
+					cont = quantidade
+
+				print("Ainda falta(m)", quantidade-cont,"arquivos")
+				print("---------------")
+
 					
 	print("downloads finalizados!")
 	return
