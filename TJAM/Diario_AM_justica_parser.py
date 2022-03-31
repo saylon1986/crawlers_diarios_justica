@@ -1,52 +1,38 @@
 # Imports de bibliotecas
-import os
 import pandas as pd
-from requests.models import get_auth_from_url
 from tqdm import tqdm
-import requests
-from pathlib import Path
-import time
-from bs4 import BeautifulSoup
-from lxml import etree
-from fake_useragent import UserAgent
-import urllib.request
-
-# Imports Selenium (Navegador Web)
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
 from PyPDF2 import PdfFileReader, PdfFileMerger
-import shutil
-import time
-
 import os, re
-import datetime
-import pandas as pd
-import numpy as np
-import shutil
-from bs4 import BeautifulSoup
 import fitz
-from tqdm import tqdm
-# from PDF_diario import Baixar_diarios_ajuste
-import time
-from tika import parser
-import json
-import charade
 
 
 
-#######################################################################################################################
+
+############################## função para cortar os textos dos diários ####################################################
+
+
 
 def Separar_textos_paginas():
-	diret = input("insira o diretório com as pastas:")
 
+	# seleciona a pasta de acordo com o ano
+	anos_di = input("Digite o ano(ex: 2003):")
+	diret = r'.\Diarios_AM_'+anos_di
+
+
+	# listas as pastas
 	pastas = os.listdir(diret)
 
+
+	# prepara as listas com os valores a serem usados
 	numeros_paginas =[]
 	nome_doc = []
 	nomes_pastas =[]
-	vlrs_unific= []
+	vlrs_unific= [] # lista que salva os valores que identificam os parágrafos
 	txt_unific = []
 	sem_lines = []
+
+
+	# iteração sobre os arquivos dentro das pastas
 
 	for b in tqdm(range(len(pastas))):
 		nome_pasta = os.path.join(diret, pastas[b])
@@ -55,123 +41,145 @@ def Separar_textos_paginas():
 			print(arquivos[a])
 			nome = os.path.join(nome_pasta, arquivos[a])
 
-			num_pag = 0
+
+			num_pag = 0 # inicio da contagem da página
+
 			with fitz.open(nome) as pdf:
 				for pagina in pdf:
 					num_pag = num_pag + 1
-					# print()
-					# print()
-					# print()
-					# print("               --------------------------------")
-					# print()
-					# print()
-					# print()
-					# print("                        Página", num_pag,"                ")
-					# print(                   "tamanho da lista:", len(txt_unific))
-					# print(txt_unific)
-					# print(nome_doc)
-					# print(nomes_pastas)
-					# print(vlrs_unific)
-					# print(numeros_paginas)
-					# print()
-					# print()
-					# print("               --------------------------------")
-					# print()
-					# z = input("")
-					blocks = pagina.getText("dict")['blocks']
+					blocks = pagina.getText("dict")['blocks'] # organiza o texto na forma de dict e separa nas seções do documento
+
+					# itera para cada seção
+
 					for o in range(len(blocks)):
-						# print('nesta página temos',len(blocks)," blocos")		
-						# print('Estamos no blocos', blocks[o]["number"])
-						# print(blocks[o])		
+
+						# só faz isso para as seções que possuem a subseção "lines"		
 						try:
 							lines = blocks[o]["lines"]
-							# print("neste bloco temos", len(lines),"linhas")
-							if len(lines) > 0: #### eliminar essa regra depois de fazer o limpador dos cabeçalhos
-								for x in range(len(lines)):
-									spans = lines[x]["spans"]
-									# print("nessa linha temos", len(spans),"spans")
-									for u in spans:
-										te = str(u['bbox'][0])
-										ta = te.split(".")
-										dist = int(ta[0])
-										vlrs_unific.append(dist)
-										txt_unific.append(u['text'].strip())
-										numeros_paginas.append(num_pag)
-										nomes_pastas.append(nome_pasta)
-										nome_doc.append(arquivos[a])
-							
+
+								# itera para cada linha
+
+							for x in range(len(lines)):
+
+								# dentro das linhas seleciona os spans
+
+								spans = lines[x]["spans"]
+								
+								# para cada spam:
+
+								for u in spans:
+									te = str(u['bbox'][0]) # seleciona o valor do parágrafo
+									ta = te.split(".") # corta no decimal
+									dist = int(ta[0]) # separa apenas os primeiros dígitos antes do ponto
+									vlrs_unific.append(dist) # coloca esse valor na lista
+									txt_unific.append(u['text'].strip()) # coloca também o texto na lista
+									numeros_paginas.append(num_pag) # salva o número da página desse texto
+									nomes_pastas.append(nome_pasta) # salva o nome da pasta 
+									nome_doc.append(arquivos[a]) # salva o nome do documento
+						
+						# caso não tenha a seção lines salva nessa outra lista o número do bloco (sem utilidade)
 						except:
-							# print('nesta página temos',len(blocks)," blocos")		
-							# print('Estamos no blocos', blocks[o]["number"])
-							# print(blocks[o]["number"])
 							sem_lines.append(blocks[o]["number"])
-							# print("não tem lines")
-							# print()
-							# print("-----------------")
-							# z= input("")
 
 
-					##  Problemas:
-							
-					########## precisa fazer uma função pra limpar os cabeçalhos!!!
-					### fazer o ajuste na numeração
-					#### pensar o que fazer nos casos que cada seção é uma linha e que estão sendo eliminados
-
-							
+	# função que faz a junção dos blocos com base no valor do parágrafo
 
 	Juntar_blocks(numeros_paginas,nome_doc, nomes_pastas, vlrs_unific, txt_unific)								
-	return numeros_paginas,	nome_doc, nomes_pastas,	vlrs_unific, txt_unific
+	
+	# retorna as listas (antes de fazer a junção)
+	# return numeros_paginas, nome_doc, nomes_pastas, vlrs_unific, txt_unific
 	
 
-###############################################################################
+
+###############################  Função para juntar os blocos dos textos ################################################
 
 def Juntar_blocks(numeros_paginas,nome_doc, nomes_pastas, vlrs_unific, txt_unific):
 
+		#listas com os valores a serem aproveitados
+		prgf = [] # index da lista com os textos das publicações que são parágrafos
 
-		prgf = []
+
+		for k in range(len(vlrs_unific)): # itera sobre a lista com os valores dos parágrafos
+			if vlrs_unific[k] == 70 or vlrs_unific[k] == 316 or vlrs_unific[k] == 317: # se forem estes valores (valores dos parágrafos)
+				pos = vlrs_unific.index(vlrs_unific[k],k) # verifica o index daquele elemento, sempre começando a buscar a partir dele na lista 
+				prgf.append(pos) # coloca o index numa lista
+
+		
+		# listas com os dados finais a serem incluídos no BD
+
+		publicacoes = [] 
 		num_paginas= []		
 		nom_pastas = []
 		nom_docs = []
-		for k in range(len(vlrs_unific)):
-			if vlrs_unific[k] == 70 or vlrs_unific[k] == 316 or vlrs_unific[k] == 317:
-				pos = vlrs_unific.index(vlrs_unific[k],k)
-				prgf.append(pos)
-				# print(pos)
-				# print(numeros_paginas[pos])
-				# z= input("")
-				# num_paginas.append(numeros_paginas[pos])
-				# nom_pastas.append(nomes_pastas[pos])
-				# nom_docs.append(nome_doc[pos])
+		
 
-		# print(prgf)
-		# print(num_paginas)
+		# itera sobre a lista com os index dos parágrafos
 
-				
-		publicacoes = []
-		for z in range(len(prgf)):
-			atual = prgf[z]
-			try:
-				final = prgf[z+1]
-				publi = txt_unific[atual:final]
-				if len(publi)> 1:
-					txt_publi = " ".join(publi)
-					if len(txt_publi) > 150:
-						publicacoes.append(txt_publi)
-						num_paginas.append(numeros_paginas[atual])
-						nom_pastas.append(nomes_pastas[atual][-10:])
-						nom_docs.append(str(nome_doc[atual]))
-			except:
-				pass	
+		z = 0
+		while True:
 
-		# for j in range(len(num_paginas)):
-		# 	print(num_paginas [j])
-		# 	print(publicacoes [j])
-		# 	print(nom_pastas[j])
-		# 	print(nom_docs[j])
-		# 	print()
-		# 	print('---------------------')
-			# z = input('')
+			if z >= len(prgf)-1:
+				break
+			else:
 
+				atual = prgf[z] # recebe o index do primeiros
+				seguinte = prgf[z+1] # recebe o index do segundo
+
+
+				if seguinte == atual+1: # se o segundo for consecutivo do primeiro
+					# print(atual, seguinte,"são consecutivos! O z valia",z)
+					# s = input("")
+
+					while True: 
+					
+						z = z+1 # z aumenta um elemento
+						teste = prgf[z] # teste recebe novo elemento
+						if z >= len(prgf)-1:
+							break
+						else:
+							seguinte = prgf[z+1] # #seguinte recebe o elemento seguinte ao anterior
+							# print(teste,seguinte,"são os atuais. O Z vale",z)
+							if teste+1 != seguinte: # verifica se ainda são consecutivos
+								# print("acabaram os consecutivos")
+								# print("o atual será cortado", atual,"e o seguinte será cortado em", 
+								# 	seguinte)
+								# s = input("")
+								break 
+
+
+					publi = txt_unific[atual:seguinte] # corta a lista entre esses elementos
+					txt_publi = " ".join(publi) #unifica os textos nesse intervalo
+
+					# if len(txt_publi) > 150: # eliminar parágrafos e outras coisas que não são publicações
+					publicacoes.append(txt_publi) # salva o texto da publicação
+					num_paginas.append(numeros_paginas[atual]) # o número da pagina onde começa
+					nom_pastas.append(nomes_pastas[atual][-10:]) # o nome da pasta
+					nom_docs.append(str(nome_doc[atual])) # e do documento
+					z = z+1
+
+
+				else:
+					publi = txt_unific[atual:seguinte] # corta a lista entre esses elementos
+					txt_publi = " ".join(publi) #unifica os textos nesse intervalo
+
+					# if len(txt_publi) > 150: # eliminar parágrafos e outras coisas que não são publicações
+					publicacoes.append(txt_publi) # salva o texto da publicação
+					num_paginas.append(numeros_paginas[atual]) # o número da pagina onde começa
+					nom_pastas.append(nomes_pastas[atual][-10:]) # o nome da pasta
+					nom_docs.append(str(nome_doc[atual])) # e do documento
+					z = z+1
+
+
+		### conferir o número das páginas		
+
+		# for item in publicacoes:
+		# 	print("------------------------")
+		# 	print(item)
+		# 	s = input("")
+
+
+
+		# Transforma num DF		
 
 		df_textos_paginas = pd.DataFrame()    
 		df_textos_paginas["publicacoes"] = publicacoes
@@ -179,19 +187,25 @@ def Juntar_blocks(numeros_paginas,nome_doc, nomes_pastas, vlrs_unific, txt_unifi
 		df_textos_paginas["nome_documento"] = nom_docs
 		df_textos_paginas["nomes_pastas"] = nom_pastas	
 
-
-		df_textos_paginas.to_excel("Diarios_publicacoes.xlsx", index = False)
+		try:
+			antigos = pd.read_excel("Diarios_publicacoes.xlsx", engine ='openpyxl')
+			# print("já temos uma planilha!")
+			df_textos_paginas = pd.concat([antigos,df_textos_paginas])
+			df_textos_paginas.to_excel("Diarios_publicacoes.xlsx", index = False)
+		except:
+			df_textos_paginas.to_excel("Diarios_publicacoes.xlsx", index = False)
+		
+	
 
 
 
 ################################################################################################################
 
-
-
-# ################################################### ***********  ###########################################
-
 def Main_Separacao():
 
 	data_frames = Separar_textos_paginas()
+
+################################################################################################################
+
 
 Main_Separacao()

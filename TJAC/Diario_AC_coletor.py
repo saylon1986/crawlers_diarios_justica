@@ -29,13 +29,14 @@ import base64
 
 
 
-def downloads_done(path_final, quantidade):
+def downloads_done(path_final):
+
 	print()
 	print("estamos verificando na pasta:", path_final)
 	cont = 0
 	desist = 0
 	while True:
-		if cont >= quantidade:
+		if cont == 1 or desist == 4:
 			break
 		else:
 			print("aguardando 15 seg")
@@ -45,26 +46,25 @@ def downloads_done(path_final, quantidade):
 			total = os.listdir(path_final)
 			# print("temos", len(total), "arquivos nessa pasta")
 			if len(total) == 0:
-				cont = quantidade
+				cont = 1
 			else:
 				for i in os.listdir(path_final):
 					nome = str(i)
-					if ".crdownload" not in nome:
-						# print(i," finalizado")
+					if nome[-3:] == "pdf":
 						cont = cont+1
-						print("Ainda falta(m)", quantidade-cont,"arquivos")
-						print("---------------")
-						desist = desist + 1
-						if desist == (quantidade+1):
-							cont = quantidade
+						print("temos", cont, "arquivos baixados")
+				desist = desist + 1
+
+				print("Download em andamento. Aguarde")
+				print("---------------")
 					
-	print("downloads finalizados!")
+	print("downloads finalizados")
 	return
 
 
 #########################################
 
-def Baixar_diarios(ano, datas, links, quantidade = 1):
+def Baixar_diarios(ano, datas, links):
 
 
 	dir_path = str(os.path.dirname(os.path.realpath(__file__)))
@@ -90,7 +90,7 @@ def Baixar_diarios(ano, datas, links, quantidade = 1):
 		driver.get('https://diario.tjac.jus.br/edicoes.php?Ano='+str(ano)+'&Mes='+mes+'&PDF='+str(link))
 		time.sleep(3)
 
-		downloads_done(path_final, quantidade)
+		downloads_done(path_final)
 		driver.quit()
 
 
@@ -105,7 +105,7 @@ def Convert_names(datas):
 		data = data.strip()
 		str_data = "/var/www/PDF/DE"+data+".pdf"
 		# print(str_data)
-		bites = bytes(str_data, encoding="utf-8")
+		bites = bytes(str_data, encoding="utf-8") # converte a data para o formato B64
 		# print(str(base64.b64encode(bites)))
 		nome_doc = str(base64.b64encode(bites))
 		link_b64.append(nome_doc[2:-1])
@@ -124,7 +124,6 @@ def Gera_dias_uteis():
 	# print(date_list)
 
 	ano = int(date_list[0].strftime("%Y"))
-	# print("o ano é", ano)
 
 
 	cal = Brazil()
@@ -145,10 +144,6 @@ def Gera_dias_uteis():
 			datas.append(data)
 
 
-	# print(datas)
-	# print()
-	# print(datas_convert)
-	# z = input("")
 	return datas, datas_convert, ano
 
 
