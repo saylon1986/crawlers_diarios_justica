@@ -28,17 +28,20 @@ from selenium.webdriver.common.by import By
 
 
 
+
 def downloads_done(path_final):
+	
 	print()
 	print("estamos verificando na pasta:", path_final)
 	cont = 0
+	desist = 0
 	while True:
-		if cont >= 2:
+		if cont == 2 or desist == 4:
 			break
 		else:
-			print("aguardando 10 seg")
+			print("aguardando 15 seg")
 			print("-----")
-			time.sleep(10)
+			time.sleep(15)
 			cont = 0
 			total = os.listdir(path_final)
 			# print("temos", len(total), "arquivos nessa pasta")
@@ -47,14 +50,17 @@ def downloads_done(path_final):
 			else:
 				for i in os.listdir(path_final):
 					nome = str(i)
-					if ".crdownload" not in nome:
-						# print(i," finalizado")
+					if nome[-3:] == "pdf":
 						cont = cont+1
-						print("Ainda falta(m)", 2-cont,"arquivos")
-						print("---------------")
+						# print("temos", cont, "arquivos baixados")
+				desist = desist + 1
+
+				print("Ainda falta(m)", 2-cont,"arquivos")
+				print("---------------")
 					
 	print("downloads finalizados")
 	return
+
 
 
 ##################################################################################
@@ -62,8 +68,9 @@ def downloads_done(path_final):
 def Baixar_diarios(datas):
 
 
+	ano = str(datas[0][-4:])
 	dir_path = str(os.path.dirname(os.path.realpath(__file__)))
-	path = dir_path + f'\Diarios_MS_2021'
+	path = dir_path + f'\Diarios_MS_'+ano
 	Path(path).mkdir(parents=True, exist_ok=True)
     
 	cadernos = ["2","3"]
@@ -72,7 +79,7 @@ def Baixar_diarios(datas):
 	for data in datas:
 		chromedriver_path = Path(str(Path(__file__).parent.resolve()) + '\software\chromedriver.exe')
 		data_pasta = data.replace("/","-")
-		path_final = dir_path + f'\Diarios_MS_2021\\'+data_pasta
+		path_final = dir_path + f'\Diarios_MS_'+ano+'\\'+data_pasta
 		Path(path_final).mkdir(parents=True, exist_ok=True)
 		options = Options()
 		prefs = {'download.default_directory' : path_final}
