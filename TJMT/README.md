@@ -45,7 +45,7 @@ Há algumas publicações em que cada linha é fragmentada em uma seção ou, ai
 
 #### Publicações que excedem mais de uma página ou mais de uma seção:
 
-Como há uma parcela das publicações que não é uniforme, o procedimento adotado doi o seguinte:
+Como há uma parcela das publicações que não é uniforme, o procedimento adotado foi o seguinte:
 1. Realizar o teste de encontrar o número CNJ, 
 2. Caso não encontrar, unificar o anterior (caso não seja o primeiro) até a quarta seção seguinte sem encontrar o número CNJ.
 	Essa escolha foi feita depois de observar que até 4 seções posteriores a publicação com a numeração, pertenciam a ela.
