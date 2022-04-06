@@ -12,11 +12,11 @@ import fitz
 
 							# Função para separar os textos das publicações
 
-def Separar_textos_paginas():
+def Separar_textos_paginas(ano):
 
 	# diretório com as pastas e os dados
 
-	diret = r'./Diarios_MT_2019'
+	diret = r'./Diarios_MT_'+ano
 
 	pastas = os.listdir(diret)
 
@@ -82,6 +82,7 @@ def Separar_textos_paginas():
 
 
 							# PARA CONFERÊNCIA - DESCOMENTAR CASO QUEIRA VERIFICAR O CORTE DAS PUBLICAÇÕES (por seção)- APERTAR ENTER A CADA PUBLICAÇÃO
+							#### esse corte é o da estrutura do PDF - a separação é feita por outra função
 
 							# print('Pasta:',nome_pasta[-10:]," --- ", 'arquivo:', arquivos[a])
 							# print("Estamos na página:", num_pag)
@@ -104,14 +105,10 @@ def Separar_textos_paginas():
 
 ###############################################################################
 
- 			###### Função para separar as publicações de interesse e Gerar um Banco de dados e um excel #########
+ 			###### Função para separar, unificar e selecionar as publicações de interesse e Gerar um Banco de dados em excel #########
 
 
 def Juntar_blocks(numeros_paginas,nome_doc, nomes_pastas, txt_unific):
-
-
-	### Problemas:
-	##### pensar como unificar as publis que excedem mais de uma página
 
 
 	publicacoes = []
@@ -121,41 +118,52 @@ def Juntar_blocks(numeros_paginas,nome_doc, nomes_pastas, txt_unific):
 	x = 0
 
 
-	print("temos", len(txt_unific), "publicações")
 
 	for txt,num,doc,pst in zip(txt_unific,numeros_paginas,nome_doc,nomes_pastas):
-		# txt ="Temos um numero 1001461-41.2022.8.11.0000" 
-	# txt ="" Número:  1001461­41.2022.8.11.0000 
-		if re.search(r'\d{2}\.\d{4}\.\d\.\d{2}\.\d{4}',txt, re.IGNORECASE.MULTILINE):
+		
+		####        identifiquei esse problema de encoding do traço (-) no texto em alguns números cnj no pdf, o que enganava o regex  #########
+
+								
+											#  Número:  1001461­41.2022.8.11.0000 
+
+								
+										########                                 ###########
+
+		
+		# caso encontra a o padrão CNJ na publicação ele separa a publicação, o número da página, documento e pasta.
+		# pelo problema acima do encoding relatado acima adotei o regex somente da parte final do padrão CNJ (ex: 42.2021.8.11.0000)
+		
+		if re.search(r'\d{2}\.\d{4}\.\d\.\d{2}\.\d{4}',txt, re.IGNORECASE.MULTILINE): # pesquisa o padrão em todas as linhas da publicação
 			# print(txt)
-			publicacoes.append(txt)
+			publicacoes.append(txt) 
 			num_pags.append(num)
 			nome_docs.append(doc)
 			nome_pst.append(pst)
-			# print('Pasta:',pst," --- ", 'arquivo:', doc)
-			# print("Estamos na página:", num)
-			# print("Publicação:")
-			# print(txt)
-			# print("------------------------\n")
-			# z = input("")
-			x = 0
+			x = 0 # contador da quantidade de unificações sem encontrar o padrão CNJ. Quando ele encontra a contagem é zerada
+
+
 	
+		# caso ele não encontre o padrão CNJ e essa publicação não seja a primeira da lista 
 		else:
-			if x <= 4 and len(publicacoes)>=1:
-				txt = publicacoes[-1]+" "+txt
-				del publicacoes[-1]
-				publicacoes.append(txt)
-				x = x+1
+			if x <= 4 and len(publicacoes)>=1: #verifica se atingiu a quantidade máxima de unificações (4) sem encontrar um padrão CNJ ou se é a primeira da lista
+				txt = publicacoes[-1]+" "+txt  # unifica o texto atual com a publicação anterior
+				del publicacoes[-1] # deleta da lista a publicação anterior
+				publicacoes.append(txt) # junta a nova publicação unificada na lista (o número da página e o nome do doc se mantém onde a publicação começa)
+				x = x+1 # soma 1 no controle da quatidade de vezes seguidas que unificou sem achar o padrão CNJ
+			
+			# se atingiu as 4 seguidas ou é o primeiro elemento da lista das publicações ele abandona aquela publicação
 			else:
-				pass
+				pass 
 
 
 
-	for item,num in zip(publicacoes,num_pags):
-		print("página", num)
-		print(item)
-		print("-----------------")
-		z = input('')
+# PARA CONFERÊNCIA - DESCOMENTAR CASO QUEIRA VERIFICAR O CORTE FINAL DAS PUBLICAÇÕES - APERTAR ENTER A CADA PUBLICAÇÃO
+
+	# for item,num in zip(publicacoes,num_pags):
+	# 	print("página", num)
+	# 	print(item)
+	# 	print("-----------------")
+	# 	z = input('')
 
 
 	df_textos_paginas = pd.DataFrame()    
@@ -164,15 +172,16 @@ def Juntar_blocks(numeros_paginas,nome_doc, nomes_pastas, txt_unific):
 	df_textos_paginas["nome_documento"] = nome_docs
 	df_textos_paginas["nomes_pastas"] = nome_pst	
 
-	df_textos_paginas.to_excel("Diarios_publicacoes.xlsx", index = False)
+	df_textos_paginas.to_excel("Diarios_publicacoes_MT_"+ano+".xlsx", index = False)
 
 
 
-################################################################################################################
+########################################      Funçao principal    ########################################################################
 
 def Main_Separacao():
 
-	data_frames = Separar_textos_paginas()
+	ano = input("digite o ano com 4 dígitos (ex: 2016):")
+	data_frames = Separar_textos_paginas(ano)
 
 ################################################################################################################
 
