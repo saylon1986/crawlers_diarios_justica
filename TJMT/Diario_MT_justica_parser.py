@@ -29,6 +29,8 @@ def Separar_textos_paginas(ano):
 	txt_unific = []
 	sem_lines = []
 
+	## lista para verificar as flags escolhidas
+	caracteristicas =[]
 
 	# iteração das pastas para acessar os arquivos de PDF individualmente
 
@@ -47,16 +49,15 @@ def Separar_textos_paginas(ano):
 			with fitz.open(nome) as pdf:
 				for pagina in pdf:
 					num_pag = num_pag + 1
+					# print("\n\n\n Estamos na página",num_pag,"\n\n\n\n documento:",arquivos[a],"\n\n\n Na pasta:",nome_pasta,"\n\n\n")
 					
 					blocks = pagina.getText("dict")['blocks'] # método que divide o texto em blocos no formato dict
-					# blocks = pagina.getText('blocks')
-					# for item in blocks:
-					# 	print(item,'\n')
-					# 	z= input("")
+	
 				
 					for o in range(len(blocks)):
 											
-
+						# print(blocks[o])
+						# z= input("")
 						try: # elimina os blocos que não contém "lines" e consequentemente não tem textos
 							
 							lines = blocks[o]["lines"] # separa as linhas
@@ -67,30 +68,35 @@ def Separar_textos_paginas(ano):
 								spans = lines[x]["spans"] # separa os spans
 								
 								for u in spans:
-									txt_block.append(u['text']) # separa todos os textos de cada bloco e salva na lista para unificação
+									tam = str(u['size']).split(".")[0]
+									flag =str(u['flags'])
+
+									## para o teste previo de verificar as flags	
+									caracteristicas.append((tam,flag)) 
 									
+									if tam == "7" and flag == "0" or tam == "7" and flag =="16" or tam =="10" and flag == "0": 
+										txt_block.append(u['text'].strip()) # separa todos os textos de cada bloco e salva na lista para unificação
+								
+
+									## para verificar o que aparece nos padrões das flags
+							
+									# if tam == "9" and flag == "4":
+									# 	print("\n\n PADRÃO 2\n\n",u['text'])
+									# 	z = input("")
+									# # if tam == "9" and flag == "4":
+									# 	print("\n\n PADRÃO 3\n\n",u['text'])	
+									# 	z = input("")
 
 							# unifica os textos de cada bloco e salva o número da página, nome do arquivo e a data
 
 							txt_fim = " ".join(txt_block)
 							txt_unific.append(str(txt_fim))
-							# print(txt_fim)
-							# print("______________________")
 							numeros_paginas.append(num_pag)
 							nomes_pastas.append(nome_pasta[-10:])
 							nome_doc.append(arquivos[a])
 
 
-							# PARA CONFERÊNCIA - DESCOMENTAR CASO QUEIRA VERIFICAR O CORTE DAS PUBLICAÇÕES (por seção)- APERTAR ENTER A CADA PUBLICAÇÃO
-							#### esse corte é o da estrutura do PDF - a separação é feita por outra função
-
-							# print('Pasta:',nome_pasta[-10:]," --- ", 'arquivo:', arquivos[a])
-							# print("Estamos na página:", num_pag)
-							# print("No bloco número:",o,"num total de", len(blocks))
-							# print("Publicação:")
-							# print(txt_fim)
-							# print("------------------------\n")
-							# z = input("")
+					
 							
 
 						# se não tiver as linhas, salva em outra lista - somente para conferência, não tem utilidade.					
@@ -98,8 +104,21 @@ def Separar_textos_paginas(ano):
 						except:
 							sem_lines.append(blocks[o]["number"])
 
+
+
+	## contabilização da quantidade de flags mais frequentes
+							
+	# nome_acao = pd.DataFrame()
+	# nome_acao["Ação"] = caracteristicas							
+	# nome_acao = pd.DataFrame(nome_acao.groupby(["Ação"])["Ação"].count())
+	# nome_acao.columns = ["quantidade"]
+	# nome_acao = nome_acao.reset_index()						
+
+	# print(nome_acao.sort_values(by=['quantidade'],ascending=False))
+	# z = input("")
+
 	
-	Juntar_blocks(numeros_paginas,nome_doc, nomes_pastas, txt_unific)								
+	Juntar_blocks(numeros_paginas,nome_doc, nomes_pastas, txt_unific, ano)								
 	return numeros_paginas,	nome_doc, nomes_pastas, txt_unific
 	
 
@@ -108,14 +127,14 @@ def Separar_textos_paginas(ano):
  			###### Função para separar, unificar e selecionar as publicações de interesse e Gerar um Banco de dados em excel #########
 
 
-def Juntar_blocks(numeros_paginas,nome_doc, nomes_pastas, txt_unific):
+def Juntar_blocks(numeros_paginas,nome_doc, nomes_pastas, txt_unific,ano):
 
-
+	num_process =[]
 	publicacoes = []
 	num_pags = []
 	nome_docs = []
 	nome_pst = []
-	x = 0
+	
 
 
 
@@ -132,45 +151,100 @@ def Juntar_blocks(numeros_paginas,nome_doc, nomes_pastas, txt_unific):
 		
 		# caso encontra a o padrão CNJ na publicação ele separa a publicação, o número da página, documento e pasta.
 		# pelo problema acima do encoding relatado acima adotei o regex somente da parte final do padrão CNJ (ex: 42.2021.8.11.0000)
-		
-		if re.search(r'\d{2}\.\d{4}\.\d\.\d{2}\.\d{4}',txt, re.IGNORECASE.MULTILINE): # pesquisa o padrão em todas as linhas da publicação
-			# print(txt)
+
+
+		## regra da pesquisa do número CNJ dentro do texto da publicação
+
+		if len(txt) <= 1000: # se a publicação tiver até 1000 caracteres, procura no texto todo
+			text = txt
+		else:	
+			vlr = int(len(txt)*0.10)
+			if vlr < 350: # se tiver mais de mil até 3500, procura nos 350 primeiro caracteres
+				vlr = 350
+			text = txt[0:vlr] # fora isso, pesquisar nos 10% primeiros caracteres da publicação
+
+
+		## incício da busca
+
+		if re.search(r'\d{2}\.\d{4}\.\d\.\d{2}\.\d{4}',text, re.IGNORECASE.MULTILINE): # pesquisa o padrão em todas as linhas da publicação (dentro do limite de caracteres)
+			try:
+				nm_proc = re.search(r'\d{2,7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4}',text, re.IGNORECASE.MULTILINE).group() # se encontrar o padrão completo, separa o número
+				num_process.append(nm_proc) # salva na lista
+
+			# se encontrou so o padrão parcial por causa do problema acima
+			except:
+				posic = re.search(r'\d{2}\.\d{4}\.\d\.\d{2}\.\d{4}',text, re.IGNORECASE.MULTILINE).span() # pega os caracter do início e o fim do padrão parcial 
+				trecho = text[posic [0] - 10:posic[1]].strip() # separa o trecho voltando 10 caracteres do início encontrado (a parte inicial do nº cnj tem até 7 digitos)
+				nm_proc = re.search('(\d.*\.\d{4})',trecho).group() # elimina eventuais sobras de texto que tenham sido captadas
+				num_process.append(nm_proc)  # salva na lista o número limpo
+
+			# salva nas listas a publicação e as demais informações dela (página, documento, pasta)	
 			publicacoes.append(txt) 
 			num_pags.append(num)
 			nome_docs.append(doc)
 			nome_pst.append(pst)
-			x = 0 # contador da quantidade de unificações sem encontrar o padrão CNJ. Quando ele encontra a contagem é zerada
 
 
+			## comparação das duas últimas publicações:
+			if len(num_process) >= 2: # só da pra fazer isso depois que tivermos pelo menos dois números na lista
+				ultimo = num_process[-1]
+				penultimo = num_process [-2]
+				if ultimo == penultimo: # se as duas tiverem o mesmo número CNJ
+					unif = publicacoes[-2]+' '+publicacoes[-1] #unifica as duas na penúltima
+					
+					#deleta tudo da última publicação inserida
+					del num_process [-1] 
+					del publicacoes [-1]
+					del num_pags [-1]
+					del nome_docs [-1]
+					del nome_pst [-1]		
+	
 	
 		# caso ele não encontre o padrão CNJ e essa publicação não seja a primeira da lista 
 		else:
-			if x <= 4 and len(publicacoes)>=1: #verifica se atingiu a quantidade máxima de unificações (4) sem encontrar um padrão CNJ ou se é a primeira da lista
+			if len(publicacoes)>=1 and re.search("^Disponibilizado -",txt,re.IGNORECASE) == None: #verifica se atingiu a quantidade máxima de unificações (4) sem encontrar um padrão CNJ ou se é a primeira da lista
 				txt = publicacoes[-1]+" "+txt  # unifica o texto atual com a publicação anterior
 				del publicacoes[-1] # deleta da lista a publicação anterior
 				publicacoes.append(txt) # junta a nova publicação unificada na lista (o número da página e o nome do doc se mantém onde a publicação começa)
-				x = x+1 # soma 1 no controle da quatidade de vezes seguidas que unificou sem achar o padrão CNJ
-			
-			# se atingiu as 4 seguidas ou é o primeiro elemento da lista das publicações ele abandona aquela publicação
-			else:
-				pass 
+				
+		
 
 
-
-# PARA CONFERÊNCIA - DESCOMENTAR CASO QUEIRA VERIFICAR O CORTE FINAL DAS PUBLICAÇÕES - APERTAR ENTER A CADA PUBLICAÇÃO
-
+# PARA CONFERÊNCIA - DESCOMENTAR CASO QUEIRA VERIFICAR O CORTE FINAL DAS PUBLICAÇÕES NA ORDEM - APERTAR ENTER A CADA PUBLICAÇÃO
+	# qtdade = 0
 	# for item,num in zip(publicacoes,num_pags):
+	# 	qtdade =qtdade+1
+	# 	print("Quantidade avaliada:",qtdade)
 	# 	print("página", num)
 	# 	print(item)
 	# 	print("-----------------")
 	# 	z = input('')
 
 
-	df_textos_paginas = pd.DataFrame()    
+
+	# gera o DF com as publicações e as demais informações
+
+	df_textos_paginas = pd.DataFrame()
+	df_textos_paginas["Número do processo"] = num_process
 	df_textos_paginas["publicacoes"] = publicacoes
 	df_textos_paginas["numeros_paginas"] = num_pags
 	df_textos_paginas["nome_documento"] = nome_docs
 	df_textos_paginas["nomes_pastas"] = nome_pst	
+
+	
+
+
+	### CONFERÊNCIA AMOSTRAL - DESCOMENTAR CASO QUEIRA UMA AMOSTRA ALEATÓRIA DOS RECORTES  - APERTAR ENTER A CADA PUBLICAÇÃO
+
+	# amostra_trib = df_textos_paginas.sample(50)
+	# for pub,pag in zip(amostra_trib["publicacoes"],amostra_trib["numeros_paginas"]):
+	# 	print(pag)
+	# 	print(pub)
+	# 	print("--------------")
+	# 	z= input("")
+
+
+	# gera o excel com o DF final
 
 	df_textos_paginas.to_excel("Diarios_publicacoes_MT_"+ano+".xlsx", index = False)
 
@@ -180,7 +254,7 @@ def Juntar_blocks(numeros_paginas,nome_doc, nomes_pastas, txt_unific):
 
 def Main_Separacao():
 
-	ano = input("digite o ano com 4 dígitos (ex: 2016):")
+	ano = input("digite o ano com 4 dígitos (ex: 2016):") # escolhe o ano para iniciar o processo
 	data_frames = Separar_textos_paginas(ano)
 
 ################################################################################################################

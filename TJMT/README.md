@@ -1,4 +1,4 @@
-### TJMT - Metodologia
+## TJMT - Metodologia
 
 #### 1. Coleta
 
@@ -21,35 +21,67 @@ O algoritmo organiza os diários em pastas por ano e dentro delas, por pastas cu
 
 #### 2. Parser
 
-Para dar inicio ao processo é necessário inserir o ano da pasta a ser "parseada".
+Para dar inicio ao processo é necessário inserir o ano da pasta a ser "parseada" no formato de 4 dígitos.
 
 Este parser leva em consideração para realizar os recortes os blocos na forma como eles vem organizados no documentos,
 já que nesse casos eles já estão organizados, em sua grande maioria, da forma correta.
 
+Utilizando o python é possível acessar o texto na formato da sua estrutura gerando o seguinte resultado:
 
-Contudo, muitas seções do documento trazem publicações que não são úteis, porque não tratam de processos judiciais, mas de questões administrativas.
-
-Exemplos:
-
-"DEPARTAMENTO DO TRIBUNAL PLENO   ADMINISTRATIVO   PUBLICAÇÃO DE CONCLUSÃO DE JULGAMENTO       1 – PROPOSIÇÃO nº 26/2014 – DEPARTAMENTO DO TRIBUNAL PLENO  – N. 0173072-60.2014.8.11.0000  Relator: Des. Orlando de Almeida Perri   Decisão: "PROPOSTA DE ALTERAÇÃO DE EMENDA REGIMENTAL  APROVADA, POR UNANIMIDADE."   ***********   2 – PROPOSIÇÃO nº 27/2014 – DEPARTAMENTO DO TRIBUNAL PLENO  – N. 0173073-45.2014.8.11.0000 Relator: Des. Orlando de Almeida Perri   Decisão: "POR UNANIMIDADE APROVOU A MINUTA DE PROJETO DE  LEI  QUE  REGULAMENTA  A  JORNADA  DE  TRABALHO  DOS  SERVIDORES."   ***********   3 –  PEDIDO  DE  PROVIDÊNCIAS  nº  7/2014 –  DEPARTAMENTO  DE  CADASTRO DE MAGISTRADOS – N. 0173927-39.2014.8.11.0000 Relator: Des. Orlando de Almeida Perri   Decisão: "POR UNANIMIDADE APROVOU A ESCALA DE PLANTÃO  APRESENTADA."   ***********   Departamento do Tribunal Pleno em Cuiabá, aos 19 dias do mês de  dezembro de 2014.   Belª. MARIA CONCEIÇÃO BARBOSA CORRÊA Diretora do Departamento do Tribunal Pleno"
+*{'number': 0, 'type': 0, 'bbox': (24.0, 361.0083312988281, 85.38816833496094, 368.7727966308594), 'lines': [{'spans': [{**'size': 6.949999809265137, 'flags': 16**, 'font': 'Arial,Bold', 'color': 0, 'ascender': 0.9052734375, 'descender': -0.2119140625, **'text': 'TRIBUNAL PLENO'**, 'origin': (24.0, 367.29998779296875), 'bbox': (24.0, 361.0083312988281, 85.38816833496094, 368.7727966308594)}], 'wmode': 0, 'dir': (1.0, 0.0), 'bbox': (24.0, 361.0083312988281, 85.38816833496094, 368.7727966308594)}]}*
 
 
-"ATO N. 862/2014/CMAG         O PRESIDENTE DO TRIBUNAL DE JUSTIÇA DO ESTADO DE MATO  GROSSO , no uso de suas atribuições legais, com base no artigo 96, I, "c"  da Constituição Federal e tendo em vista a decisão proferida pelo Tribunal  Pleno em sessão ordinária, realizada em 18-12-2014,     * O Ato nº 862/2014/CMAG completa encontra-se no Caderno de  Anexo do Diário da Justiça Eletrônico no final desta Edição."
+Essa estrutura de um dicionario também é manuseada no python, do qual são extraídos os elementos indicados em negrito - *text, size* e *flag*. A escolha por manusear
+esse elementos foi para filtrar, de saída, os textos que interessavam dos conteúdos desnecessários, como como indíces, caixas de texto de seções, cabeçalhos, etc.
+
+O atributo *'text'* guarda o texto que visualizamos no PDF. O exemplo acima possui apenas um título, mas nas publicações temos uma série de spans com
+inúmeras linhas de textos dentro delas.
+
+Analisando os atributos *size* e *flag* mais frequentes nos diários desse tribunal, notamos a seguinte frequência: 
 
 
+#####   Tupla        Quantidade 
 
-Por esta razão, o critério adotado para selecionar as publicações que tratassem de decisões judiciais foi conter, no corpo do texto, ao menos uma numeração no padrão CNJ.
+1 **(7, 0)       1510709** 
+2   (7, 16)      157644 
+3 **(9, 4)       25252** 
+4 **(10, 0)      3500** 
 
-Há algumas publicações em que cada linha é fragmentada em uma seção ou, ainda, publicações em que parte do texto está na página seguinte. Nesses casos foi adotado o procedimento abaixo.
+__(recortamos apenas o valor antes do ponto (.) e unimos um tupla com size e flag, respectivamente; organizando a frequência como descendente e escolhendo os 4 primeiros)__
+
+Como se nota, destaca-se muito nos textos a tupla *size/flag* nos valores *7* e *0*. Isso indica que a maioria dos textos do diário possui essa configuração. Contudo, analisando as demais verificamos que em alguns casos raros, também as tuplas *10/0* e *7/16* também podem trazer informações do processo contendo textos que fazem parte da publicação.
+
+A tupla 9/4 apenas traz alguns subtítulos e números das páginas.
+
+Com base nesse estudo, foram selecionados dos diários apenas os textos com as formatações 1, 3 e 4.
+
+De posse dos textos das publicações o recorte atendeu ao seguinte critério:
+
+1. Separamos a parte inicial da publicação - detalhes de como isso foi feito está no código
+2. Buscamos o padrão CNJ nesse trecho do texto
+3. Caso encontrado, salva a publicação e compara o número CNJ com o da publicação anterior(se houver).
+	- Se os números forem iguais, unifica as publicações e elimina a última
+	- Se forem diferentes, mantem as duas´.
+4. Caso ele não encontre o padrão CNJ no começo da publicação, ele unifica as publicações sem esse padrão com a anterior
+até encontrar a próxima publicação com o padrão CNJ. Esse procedimento permite que uma publicação dividida em várias
+seções seja unificada.
 
 
-#### Publicações que excedem mais de uma página ou mais de uma seção:
+### Margem de erro:
 
-Como há uma parcela das publicações que não é uniforme, o procedimento adotado foi o seguinte:
-1. Realizar o teste de encontrar o número CNJ, 
-2. Caso não encontrar, unificar o anterior (caso não seja o primeiro) até a quarta seção seguinte sem encontrar o número CNJ.
-	Essa escolha foi feita depois de observar que até 4 seções posteriores a publicação com a numeração, pertenciam a ela.
-	Em muitos casos há a soma de um pequeno trecho inadequado, mas a margem de erro observada foi bem pequena; o que justifica a adoção do método.
+Nos testes que realizamos tivemos os seguintes resultados:
 
+1. Teste seguindo a ordem normal dos documentos:
+
+- Quantidade de publicações:
+- Quantidade verificada: X primeiras
+- Erros e faltantes: X
+
+
+2. Teste de amostra aleatória:
+
+- Quantidade de publicações:
+- Quantidade verificada: X primeiras
+- Erros e faltantes: X
 
 
