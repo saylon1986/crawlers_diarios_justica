@@ -1,4 +1,4 @@
-## TJMT - Metodologia <center>
+</center> ## TJMT - Metodologia <center>
 
 
 ![Imagem do diario](./image_diario.png)
