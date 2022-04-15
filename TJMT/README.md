@@ -39,15 +39,15 @@ inúmeras linhas de textos dentro delas.
 
 Analisando os atributos *size* e *flag* mais frequentes nos diários desse tribunal, notamos a seguinte frequência: 
 
+|  Tupla  | Quantidade |
+| ------- |  --------  |
+|*(7, 0)* | *1510709*  |
+| (7, 16) |   157644   |
+|*(9, 4)* |   *25252*  |
+|*(10, 0)*|    *3500*  |
 
-#####   Tupla        Quantidade 
 
-1 **(7, 0)       1510709** 
-2   (7, 16)      157644 
-3 **(9, 4)       25252** 
-4 **(10, 0)      3500** 
-
-__(recortamos apenas o valor antes do ponto (.) e unimos um tupla com size e flag, respectivamente; organizando a frequência como descendente e escolhendo os 4 primeiros)__
+ __(recortamos apenas o valor antes do ponto (.) e unimos um tupla com size e flag, respectivamente; organizando a frequência como descendente e escolhendo os 4 primeiros)__
 
 Como se nota, destaca-se muito nos textos a tupla *size/flag* nos valores *7* e *0*. Isso indica que a maioria dos textos do diário possui essa configuração. Contudo, analisando as demais verificamos que em alguns casos raros, também as tuplas *10/0* e *7/16* também podem trazer informações do processo contendo textos que fazem parte da publicação.
 
@@ -61,7 +61,7 @@ De posse dos textos das publicações o recorte atendeu ao seguinte critério:
 2. Buscamos o padrão CNJ nesse trecho do texto
 3. Caso encontrado, salva a publicação e compara o número CNJ com o da publicação anterior(se houver).
 	- Se os números forem iguais, unifica as publicações e elimina a última
-	- Se forem diferentes, mantem as duas´.
+	- Se forem diferentes, mantem as duas.
 4. Caso ele não encontre o padrão CNJ no começo da publicação, ele unifica as publicações sem esse padrão com a anterior
 até encontrar a próxima publicação com o padrão CNJ. Esse procedimento permite que uma publicação dividida em várias
 seções seja unificada.
@@ -76,12 +76,12 @@ Nos testes que realizamos tivemos os seguintes resultados:
 - Quantidade de publicações:
 - Quantidade verificada: X primeiras
 - Erros e faltantes: X
-
+- Anos testados: 2019
 
 2. Teste de amostra aleatória:
 
 - Quantidade de publicações:
 - Quantidade verificada: X primeiras
 - Erros e faltantes: X
-
+- Anos testados: 2019
 
