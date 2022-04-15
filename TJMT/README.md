@@ -1,9 +1,11 @@
-</center> ## TJMT - Metodologia <center>
-
-
 ![Imagem do diario](./image_diario.png)
 
-#### 1. Coleta
+</center># TJMT<center>
+
+</center>## Metodologia<center>
+
+
+#### 1. Coleta dos diários oficiais
 
 Este sistema coleta os cadernos do diário de justiçado Estado do Mato Grosso. Nesse site cada dia tem quantidades diferentes de cadernos,
 além do link dos cadernos ser organizado pelo nome, que também não segue nenhum padrão.
@@ -22,7 +24,7 @@ Assim, para dar inicio ao processo é necessário inserir o ano a ser coletado.
 O algoritmo organiza os diários em pastas por ano e dentro delas, por pastas cujo nome é a data de cada diário.
 
 
-#### 2. Parser
+#### 2. Parser das publicações
 
 Para dar inicio ao processo é necessário inserir o ano da pasta a ser "parseada" no formato de 4 dígitos.
 

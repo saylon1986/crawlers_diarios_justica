@@ -4,7 +4,7 @@ from tqdm import tqdm
 from PyPDF2 import PdfFileReader, PdfFileMerger
 import os, re
 import fitz
-
+import random
 
 
 
@@ -213,7 +213,7 @@ def Juntar_blocks(numeros_paginas,nome_doc, nomes_pastas, txt_unific,ano):
 # PARA CONFERÊNCIA - DESCOMENTAR CASO QUEIRA VERIFICAR O CORTE FINAL DAS PUBLICAÇÕES NA ORDEM - APERTAR ENTER A CADA PUBLICAÇÃO
 	# qtdade = 0
 	# for item,num in zip(publicacoes,num_pags):
-	# 	qtdade =qtdade+1
+	# 	qtdade = qtdade+1
 	# 	print("Quantidade avaliada:",qtdade)
 	# 	print("página", num)
 	# 	print(item)
@@ -234,14 +234,31 @@ def Juntar_blocks(numeros_paginas,nome_doc, nomes_pastas, txt_unific,ano):
 	
 
 
-	### CONFERÊNCIA AMOSTRAL - DESCOMENTAR CASO QUEIRA UMA AMOSTRA ALEATÓRIA DOS RECORTES  - APERTAR ENTER A CADA PUBLICAÇÃO
+	### CONFERÊNCIA AMOSTRAL ALEATÓRIA - DESCOMENTAR CASO QUEIRA UMA AMOSTRA ALEATÓRIA DOS RECORTES  - APERTAR ENTER A CADA PUBLICAÇÃO
 
-	# amostra_trib = df_textos_paginas.sample(50)
-	# for pub,pag in zip(amostra_trib["publicacoes"],amostra_trib["numeros_paginas"]):
-	# 	print(pag)
-	# 	print(pub)
-	# 	print("--------------")
-	# 	z= input("")
+
+	# # agrupa por nome do documento
+	# doc_agrup = pd.DataFrame(df_textos_paginas.groupby(["nome_documento"])["nome_documento"].count())
+	# doc_agrup.columns = ["quantidade"]
+	# doc_agrup = doc_agrup.reset_index()
+
+	# # converte os nomes em uma lista e depois embaralha os nomes em uma ordem indeterminada
+	# lista_nomes_docs = doc_agrup["nome_documento"].tolist()
+	# random.shuffle(lista_nomes_docs)
+
+
+	# # Gera uma amostra aleatória de X publicações por documento para facilitar a conferência
+	# for docu in lista_nomes_docs :
+	# 	df_filter = df_textos_paginas["nome_documento"] == docu
+	# 	amostra_trib = df_textos_paginas[df_filter]
+
+	# 	amostra_trib = amostra_trib.sample(10)  # escolher a quantidade da amostra
+	# 	for pub,doc,pag in zip(amostra_trib["publicacoes"],amostra_trib["nome_documento"],amostra_trib["numeros_paginas"]):
+	# 		print("documento:\t",doc,"\nPágina:\t",pag,"\nTexto publicação:\n",pub,"\n--------------")
+	# 		z= input("")
+
+
+
 
 
 	# gera o excel com o DF final
