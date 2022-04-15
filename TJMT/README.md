@@ -1,8 +1,10 @@
+# TJMT
+
+
 ![Imagem do diario](./image_diario.png)
 
-</center># TJMT<center>
 
-</center>## Metodologia<center>
+## Metodologia
 
 
 #### 1. Coleta dos diários oficiais

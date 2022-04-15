@@ -88,12 +88,20 @@ def Separar_textos_paginas(ano):
 									# 	z = input("")
 
 							# unifica os textos de cada bloco e salva o número da página, nome do arquivo e a data
+							if len(txt_block) > 0:
+								txt_fim = " ".join(txt_block)
+								txt_unific.append(str(txt_fim))
+								numeros_paginas.append(num_pag)
+								nomes_pastas.append(nome_pasta[-10:])
+								nome_doc.append(arquivos[a])
 
-							txt_fim = " ".join(txt_block)
-							txt_unific.append(str(txt_fim))
-							numeros_paginas.append(num_pag)
-							nomes_pastas.append(nome_pasta[-10:])
-							nome_doc.append(arquivos[a])
+							# caso o texto do bloco seja vazio, unifica um texto vazio para manter a mesma quantidade d eitens da lista
+							else:
+								txt_fim = " "
+								txt_unific.append(txt_fim)
+								numeros_paginas.append(num_pag)
+								nomes_pastas.append(nome_pasta[-10:])
+								nome_doc.append(arquivos[a])
 
 
 					
@@ -174,7 +182,14 @@ def Juntar_blocks(numeros_paginas,nome_doc, nomes_pastas, txt_unific,ano):
 			# se encontrou so o padrão parcial por causa do problema acima
 			except:
 				posic = re.search(r'\d{2}\.\d{4}\.\d\.\d{2}\.\d{4}',text, re.IGNORECASE.MULTILINE).span() # pega os caracter do início e o fim do padrão parcial 
-				trecho = text[posic [0] - 10:posic[1]].strip() # separa o trecho voltando 10 caracteres do início encontrado (a parte inicial do nº cnj tem até 7 digitos)
+				
+				# se o número do caracter não foi menor do que o início da publicação
+				if posic [0] - 10 >= 0:
+					trecho = text[posic [0] - 10:posic[1]].strip() # separa o trecho voltando 10 caracteres do início encontrado (a parte inicial do nº cnj tem até 7 digitos)
+				else:
+					# se for menor e houve algum erro na quebra da página, recebe o número parcial mesmo
+					trecho =  re.search(r'\d{2}\.\d{4}\.\d\.\d{2}\.\d{4}',text, re.IGNORECASE.MULTILINE).group()
+
 				nm_proc = re.search('(\d.*\.\d{4})',trecho).group() # elimina eventuais sobras de texto que tenham sido captadas
 				num_process.append(nm_proc)  # salva na lista o número limpo
 
