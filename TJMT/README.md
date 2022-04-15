@@ -1,5 +1,8 @@
 ## TJMT - Metodologia
 
+
+![Imagem do diario](./image_diario.png)
+
 #### 1. Coleta
 
 Este sistema coleta os cadernos do diário de justiçado Estado do Mato Grosso. Nesse site cada dia tem quantidades diferentes de cadernos,
