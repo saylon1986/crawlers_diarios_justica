@@ -39,12 +39,12 @@ inúmeras linhas de textos dentro delas.
 
 Analisando os atributos *size* e *flag* mais frequentes nos diários desse tribunal, notamos a seguinte frequência: 
 
-|  Tupla  | Quantidade |
-| ------- |  --------  |
-|*(7, 0)* | *1510709*  |
-| (7, 16) |   157644   |
-|*(9, 4)* |   *25252*  |
-|*(10, 0)*|    *3500*  |
+Index |  Tupla  | Quantidade |
+----- | ------- |  --------  |
+  1	  |*(7, 0)* | *1510709*  |
+  2   | (7, 16) |   157644   |
+  3   |*(9, 4)* |   *25252*  |
+  4   |*(10, 0)*|    *3500*  |
 
 
  __(recortamos apenas o valor antes do ponto (.) e unimos um tupla com size e flag, respectivamente; organizando a frequência como descendente e escolhendo os 4 primeiros)__
