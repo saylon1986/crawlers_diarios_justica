@@ -1,40 +1,81 @@
-### TJBA - Metodologia
+# TJBA 
+
+![Imagem do diario](./image_diario_BA.png)
+
+
+## Metodologia
+
 
 #### 1. Coleta
 
-Este sistema coleta o caderno completo do diário de justiça.
-Por default o sistema já coleta os diários com numeração entre os anos de 2012 e 2021
+Este sistema coleta os cadernos 2, 3 e 4 do diário de justiça. O caderno 1 foi eliminado por ser administrativo
+
+O usuário deve escolher o ano para iniciar a coleta que, naturalmente, é feita pelo procedimento de um ano de cada vez.
+
+O sistema gera o range das edições daquele ano e faz a iteração dos cadernos de cada edição, criando uma pasta com o nome da edição.
 
 
+#### 2. Parser das publicações
 
-#### 2. Parser
+Para dar inicio ao processo é necessário inserir o ano da pasta a ser "parseada" no formato de 4 dígitos.
+
+Este parser leva em consideração para realizar os recortes os blocos na forma como eles vem organizados no documentos,
+já que nesse casos eles já estão organizados, em sua grande maioria, da forma correta.
+
+Utilizando o python é possível acessar o texto na formato da sua estrutura gerando o seguinte resultado:
+
+*{'number': 0, 'type': 0, 'bbox': (24.0, 361.0083312988281, 85.38816833496094, 368.7727966308594), 'lines': [{'spans': [{**'size': 6.949999809265137, 'flags': 16**, 'font': 'Arial,Bold', 'color': 0, 'ascender': 0.9052734375, 'descender': -0.2119140625, **'text': 'TRIBUNAL PLENO'**, 'origin': (24.0, 367.29998779296875), 'bbox': (24.0, 361.0083312988281, 85.38816833496094, 368.7727966308594)}], 'wmode': 0, 'dir': (1.0, 0.0), 'bbox': (24.0, 361.0083312988281, 85.38816833496094, 368.7727966308594)}]}*
 
 
-Este parser leva em consideração para realizar os recortes as posições dos elementos no texto, o tamanho e 
-a flag; tendo como norte as posições mais frequentes dos parágrafos, que nesse caso é 42.
+Essa estrutura de um dicionario também é manuseada no python, do qual são extraídos os elementos indicados em negrito - *text, size* e *flag*. A escolha por manusear
+esse elementos foi para filtrar, de saída, os textos que interessavam dos conteúdos desnecessários, como como indíces, caixas de texto de seções, cabeçalhos, etc.
 
-As linhas são unificadas em bloco de acordo com a organização do próprio texto, servindo estes de marcadores
-de início e fim.
+O atributo *'text'* guarda o texto que visualizamos no PDF. O exemplo acima possui apenas um título, mas nas publicações temos uma série de spans com
+inúmeras linhas de textos dentro delas.
+
+Analisando os atributos *size* e *flag* mais frequentes nos diários desse tribunal, notamos a seguinte frequência: 
+
+Index |  Tupla  | Quantidade |
+----- | ------- |  --------  |
+  1	  |*(9, 0)* |   *42184*  |
+  2   | (8, 0)  |     1208   |
+  3   | (12, 18)|      445   |
+  4   | (4, 4)  |       72   |
 
 
+ __(recortamos apenas o valor antes do ponto (.) e unimos um tupla com size e flag, respectivamente; organizando a frequência como descendente e escolhendo os 4 primeiros)__
 
-#### Ajustes:
+Como se nota, destaca-se muito nos textos a tupla *size/flag* nos valores *9* e *0*. Isso indica que a maioria dos textos do diário possui essa configuração. 
 
-1. Na coleta: tentar eliminar a parte administrativa do diário e coletar o diário em partess
+Com base nesse estudo e na verificação dos resultados, foram selecionados dos diários apenas os textos com a formatação 1.
 
-2. No Parser:
+De posse dos textos das publicações o recorte atendeu ao seguinte critério:
 
-O procedimento acima resolveu boa parte dos problemas de recorte, mas ainda temos casos em que as seções
-unificam muitos parágrafos quebrados, sobretudo quando são páginas seguidas;	 gerando situações como a mostrada abaixo:
+1. Separamos a parte inicial da publicação - detalhes de como isso foi feito está no código
+2. Buscamos o padrão CNJ nesse trecho do texto
+3. Caso encontrado, salva a publicação e compara o número CNJ com o da publicação anterior(se houver).
+	- Se os números forem iguais, unifica as publicações e elimina a última
+	- Se forem diferentes, mantem as duas.
+4. Caso ele não encontre o padrão CNJ no começo da publicação, ele unifica as publicações sem esse padrão com a anterior
+até encontrar a próxima publicação com o padrão CNJ. Esse procedimento permite que uma publicação dividida em várias
+seções seja unificada.
 
-Classe : Mandado de Segurança nº 0017863-61.2017.8.05.0000 Foro de Origem : Salvador Órgão : Tribunal Pleno Relator : Des. Ivanilton Santos da Silva Impetrante : Concic Engenharia S/A Advogado : Francisco José Bastos (OAB: 4281/BA) Advogado : Solon Augusto Kelman de Lima (OAB: 11990/BA) Advogado : Larissa Ferreira Simões de Oliveira (OAB: 21513/BA) Impetrado : Presidente do Tribunal de Justiça da Bahia Impetrada : Juíza do Núcleo Auxiliar de Conciliação de Precatórios - NACP
------------------
 
-Trata-se de Mandado de Segurança, impetrado por COCIC ENGENHARIA S/A, contra ato dito coator do EXMO. DESEMBARGADOR PRESIDENTE DO TRIBUNAL DE JUSTIÇA DO ESTADO DA BAHIA, e da EXMA. JUÍZA ASSESSORA, RESPONSÁVEL PELO NÚCLEO AUXILIAR DE CONCILIAÇÃO DE PRECATÓRIOS - NACP, consubstanciado em adaptação a comando judicial transitado em julgado, encaminhado para cumprimento no Núcleo de Precatórios.
------------------
+### Margem de erro:
 
-Do compulsar dos fólios, averíguo não constar no writ qualquer pedido de antecipação de tutela, sendo assim, converto o julgamento em diligência para determinar à Secretaria deste Tribunal Pleno que notifique as autoridades coatoras acerca do conteúdo da petição inicial, enviando-lhes as vias apresentadas com as cópias dos documentos colacionados, para, no prazo de 10 (dez) dias, prestarem as informações que entenderem necessárias.
------------------
+Nos testes que realizamos tivemos os seguintes resultados:
 
-Intime-se, pessoalmente, o representante judicial do Estado da Bahia, enviando-lhe cópia da inicial sem documentos, para que, querendo, intervenha no feito, conforme disposto no inciso II do art. 7º da Lei nº 12.016/09.
+1. Teste seguindo a ordem normal dos documentos:
+
+- Quantidade de publicações:
+- Quantidade verificada: X primeiras
+- Erros e faltantes: X
+- Anos testados: 2019
+
+2. Teste de amostra aleatória:
+
+- Quantidade de publicações:
+- Quantidade verificada: X primeiras
+- Erros e faltantes: X
+- Anos testados: 2019
 
