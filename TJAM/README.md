@@ -12,8 +12,6 @@ Para dar inicio ao processo é necessário inserir a data de início e de final.
 
 ##### Importante:
 
-O formato da data a ser inserida é MÊS-DIA-ANO
-
 Recomedamos selecionar o período de um ano por vez.
 
 
@@ -80,3 +78,12 @@ Nos testes que realizamos tivemos os seguintes resultados:
 - Quantidade verificada: X primeiras
 - Erros e faltantes: X
 - Anos testados: 2019
+
+
+### Assunto e Comarca
+
+O array de assuntos foram construídos de acordo com uma série de casos em que essa informação era facilmente identificável.
+
+O módulo tanto dos assuntos quanto das comarcas retorna uma lista iterável. No caso so assuntos, cada item é testado na forma
+de uma expressão regular. Por sua vez, a comarca é identificável pelo código presente dos 4 últimos dígitos do  número do
+processo no padrão CNJ.
