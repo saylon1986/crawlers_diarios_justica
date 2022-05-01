@@ -12,8 +12,6 @@ Para dar inicio ao processo é necessário inserir a data de início e de final.
 
 ##### Importante:
 
-O formato da data a ser inserida é MÊS-DIA-ANO
-
 Recomedamos selecionar o período de um ano por vez.
 
 
@@ -49,8 +47,6 @@ Index |  Tupla  | Quantidade |
 
 Como se nota, destaca-se muito nos textos a tupla *size/flag* nos valores *8* e *4*. Isso indica que a maioria dos textos do diário possui essa configuração. Contudo, analisando as demais verificamos que em alguns casos raros, também a tupla *8/20* também podem trazer informações do processo contendo textos que fazem parte da publicação.
 
-A tupla 9/4 apenas traz alguns subtítulos e números das páginas.
-
 Com base nesse estudo, foram selecionados dos diários apenas os textos com as formatações 1 e 4.
 
 De posse dos textos das publicações o recorte atendeu ao seguinte critério:
@@ -82,3 +78,11 @@ Nos testes que realizamos tivemos os seguintes resultados:
 - Quantidade verificada: X primeiras
 - Erros e faltantes: X
 - Anos testados: 2019
+
+### Assunto e Comarca
+
+O array de assuntos foram construídos de acordo com uma série de casos em que essa informação era facilmente identificável.
+
+O módulo tanto dos assuntos quanto das comarcas retorna uma lista iterável. No caso so assuntos, cada item é testado na forma
+de uma expressão regular. Por sua vez, a comarca é identificável pelo código presente dos 4 últimos dígitos do  número do
+processo no padrão CNJ.
