@@ -27,6 +27,7 @@ import json
 
 
 
+
 ################### Função para verificar se os download acabaram ################# 
 
 def downloads_done(path_final, quantidade):
@@ -197,4 +198,7 @@ def main():
 
 				#############################################
 
-main()
+
+
+if __name__ == "__main__":
+    main()
