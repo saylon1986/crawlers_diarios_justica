@@ -30,6 +30,8 @@ from tqdm import tqdm
 import time
 import json
 from array_Estados import Comarcas
+from tipos_processuais import tipos_processuais
+from assuntos import assuntos_proc
 
 
 
@@ -254,8 +256,15 @@ def Cortar_publicacoes(df_textos_paginas):
 	datas_erros = []
 	docs_errados = []
 	pastas = []
+	comarcas =[]
+	oabs =[]
+	tipos_proces =[]
+	assuntos = []
 
+	termos = tipos_processuais()
+	# print(termos)
 
+	assuntos_list = assuntos_proc()
 
 	# indica a quantidade de páginas do DF
 	qtdade_paginas = df_textos_paginas["textos_paginas"] 
@@ -365,7 +374,7 @@ def Cortar_publicacoes(df_textos_paginas):
 				if vlr < 400: # se tiver mais de mil até 4000, procura nos 4000 primeiro caracteres
 					vlr = 400
 				trecho_publis = publis[o][0:vlr] # fora isso, pesquisar nos 10% primeiros caracteres da publicação
-
+			trecho_publis = trecho_publis.replace("\n"," ").lower()	
 
 
 			# se não for a última página
@@ -373,6 +382,11 @@ def Cortar_publicacoes(df_textos_paginas):
 
 				# se não for a última publicação da página
 				if o != len(publis)-1:
+
+					# docum = open("txt_teste.txt", encoding="utf-8", errors ="ignore")
+					# trecho_publis = docum.read()
+					# print(trecho_publis)
+					# z = input("")
 
 					try:
 						# separa o padrão CNJ
@@ -393,9 +407,96 @@ def Cortar_publicacoes(df_textos_paginas):
 						trechos_certos.append(publis[o])
 						docs_certos.append(doc)
 						pastas.append(pasta)
+
+						try:
+							tipo = "" # tipo recebe valor em branco
+
+
+							# itera sobre o dicionário de tipos processuais
+							for n in range(len(termos)):
+								rgx = termos [n]
+								rgx = rgx.replace("\n","") #elimina eventuais quebras de linhas no regex tbem
+								
+								# tenta encontrar o tipo na publicação
+								try:
+									if re.search(rgx, trecho_publis, re.IGNORECASE): 
+										tipo = re.search(rgx, trecho_publis, re.IGNORECASE).group()
+										tipo = tipo.lower() # se encontrar normaliza para minúscula e grava na variável
+										# print(tipo)
+										break
+								except:
+									pass
+
+							# junta o a variável tipo na lista		
+							tipos_proces.append(tipo.strip())
+							# z=input("")
+							
+
+						# em caso de erro também insere o vazio 
+						except:
+							tipo = ""
+							tipos_proces.append(tipo)
+							
+
+
+						########## assunto ##################	
+						try:
+							assunto = "" # tipo recebe valor em branco
+
+
+							# itera sobre o dicionário de tipos processuais
+							for l in range(len(assuntos_list)):
+								rgx_as = assuntos_list[l]
+								rgx_as = rgx_as.replace("\n","") #elimina eventuais quebras de linhas no regex tbem
+								
+								# tenta encontrar o tipo na publicação
+								try:
+									if re.search(rgx_as, trecho_publis, re.IGNORECASE): 
+										assunto = re.search(rgx_as, trecho_publis, re.IGNORECASE).group()
+										assunto = assunto.lower() # se encontrar normaliza para minúscula e grava na variável
+										# print(assunto,rgx_as, l)
+										# z=input("")
+										break
+								except:
+									pass
+
+							# junta o a variável tipo na lista		
+							assuntos.append(assunto)
 						
 
-					# havendo algum erro acrescenta na planilha de publicações erradas para conferência posterior	
+						# em caso de erro também insere o vazio 
+						except:
+							assunto = ""
+							assuntos.append(assunto)
+						
+
+
+						try:
+							# recebe o código e o Estado
+							codigo = numer[-4:]
+							estado = "SP"
+							array_estado = Comarcas(estado) # retorna o array do Estado na função
+
+							# itera no array do Estado até achar o código da comarca, caso não encontre insere o vazio por default
+							for k in range(len(array_estado)):
+								comarca = ""
+								if array_estado[k][0] == codigo:
+									comarca = array_estado[k][2]
+									break
+							comarcas.append(comarca)
+
+						# em caso de algum erro insere o vazio
+						except:
+							comarca = ""
+							comarcas.append(comarca)
+
+						###### parte de buscar os advogados
+
+						oab = sep_representante(publis[o])
+						oabs.append(oab)
+						
+
+					## havendo algum erro acrescenta na planilha de publicações erradas para conferência posterior	
 					except:
 						# print(publis[o])
 						publis_erros.append(publis[o])
@@ -423,10 +524,94 @@ def Cortar_publicacoes(df_textos_paginas):
 				trechos_certos.append(publis[o])
 				docs_certos.append(doc)
 				pastas.append(pasta)
+				try:
+					tipo = "" # tipo recebe valor em branco
+
+
+					# itera sobre o dicionário de tipos processuais
+					for n in range(len(termos)):
+						rgx = termos[n]
+						rgx = rgx.replace("\n","") #elimina eventuais quebras de linhas no regex tbem
+						
+						# tenta encontrar o tipo na publicação
+						try:
+							if re.search(rgx, trecho_publis, re.IGNORECASE): 
+								tipo = re.search(rgx, trecho_publis, re.IGNORECASE).group()
+								tipo = tipo.lower() # se encontrar normaliza para minúscula e grava na variável
+								# print(tipo)
+								break
+						except:
+							pass
+
+					# junta o a variável tipo na lista		
+					tipos_proces.append(tipo)
+
+
+				# em caso de erro também insere o vazio 
+				except:
+					tipo = ""
+					tipos_proces.append(tipo)
+				
+
+				########## assunto ##################	
+				try:
+					assunto = "" # tipo recebe valor em branco
+
+
+					# itera sobre o dicionário de tipos processuais
+					for l in range(len(assuntos_list)):
+						rgx_as = assuntos_list[l]
+						rgx_as = rgx_as.replace("\n","") #elimina eventuais quebras de linhas no regex tbem
+						
+						# tenta encontrar o tipo na publicação
+						try:
+							if re.search(rgx_as, trecho_publis, re.IGNORECASE): 
+								assunto = re.search(rgx_as, trecho_publis, re.IGNORECASE).group()
+								assunto = assunto.lower() # se encontrar normaliza para minúscula e grava na variável
+								# print(tipo)
+								break
+						except:
+							pass
+
+					# junta o a variável tipo na lista		
+					assuntos.append(assunto)
+				
+
+				# em caso de erro também insere o vazio 
+				except:
+					assunto = ""
+					assuntos.append(assunto)	
+
+
+				## comarcas
+
+				try:
+					# recebe o código e o Estado
+					codigo = numer[-4:]
+					estado = "SP"
+					array_estado = Comarcas(estado) # retorna o array do Estado na função
+
+					# itera no array do Estado até achar o código da comarca, caso não encontre insere o vazio por default
+					for k in range(len(array_estado)):
+						comarca = ""
+						if array_estado[k][0] == codigo:
+							comarca = array_estado[k][2]
+							break
+					comarcas.append(comarca)
+
+				# em caso de algum erro insere o vazio
+				except:
+					comarca = ""
+					comarcas.append(comarca)
+
+				####### parte de buscar os advogados
+
+				oab = sep_representante(publis[o])
+				oabs.append(oab)
 
 
 	# retorna a lista com os dados separados			
-	return trechos_certos, numeros_certos, datas, numeros_paginas, docs_certos, paginas_erros, publis_erros, datas_erros, docs_errados, pastas
+	return trechos_certos, numeros_certos, datas, numeros_paginas, docs_certos, paginas_erros, publis_erros, datas_erros, docs_errados, pastas, comarcas, tipos_proces, assuntos, oabs
 
 
 
@@ -446,7 +631,7 @@ def Main_Separacao(ano):
 
 	# itera sobre os DF
 	for m in tqdm(range(len(data_frames))):
-		trechos_certos, numeros_certos, datas, numeros_paginas, docs_certos, paginas_erros, publis_erros, datas_erros, docs_errados, pastas = Cortar_publicacoes(data_frames[m])
+		trechos_certos, numeros_certos, datas, numeros_paginas, docs_certos, paginas_erros, publis_erros, datas_erros, docs_errados, pastas,comarcas, tipos_proces, assuntos, oabs = Cortar_publicacoes(data_frames[m])
 
 
 		#criando o objeto dataframe
@@ -456,8 +641,13 @@ def Main_Separacao(ano):
 		x = pd.Series(numeros_paginas)
 		h = pd.Series(docs_certos)
 		i = pd.Series(pastas)
+		d = pd.Series(comarcas)
+		e = pd.Series(tipos_proces)
+		f = pd.Series(assuntos)
+		g = pd.Series(oabs)
 		
-		df_certos = pd.concat([r,y,x,h,i], axis=1,keys=["numero_processo","publicacao","numeros_paginas","nome_documento", "nomes_pastas"])
+		df_certos = pd.concat([r,y,x,h,i,d,e,f,g], axis=1,keys=["numero_processo","publicacao","numeros_paginas","nome_documento", "nomes_pastas",
+			"comarcas","tipos_processuais","assuntos","representantes"])
 
 		
 		# ajuste da data
@@ -515,11 +705,11 @@ def Main_Separacao(ano):
 
 
 
-	anterior_certos = classificacao_quali(anterior_certos)
+	# anterior_certos = classificacao_quali(anterior_certos)
 	anterior_certos["data_decisao"] = ""
 	anterior_certos["orgao_julgador"] = ""
 
-	anterior_certos = anterior_certos[["numero_processo", "estado","publicacao","numeros_paginas","tipos_processuais","comarcas",
+	anterior_certos = anterior_certos[["numero_processo", "estado","publicacao","numeros_paginas","tipos_processuais","assuntos","comarcas",
 	"representantes","dia", "mes","ano","nome_documento","nomes_pastas","data_decisao","orgao_julgador"]]
 
 	# gera o excel com o DF final

@@ -1096,6 +1096,7 @@ def Comarcas(estado):
 		return AL
 
 	AM = [
+	['0000',None,'Manaus'],
 	['0001',None,'Manaus'],
 	['0015',None,'Manaus'],
 	['0016',None,'Manaus'],
