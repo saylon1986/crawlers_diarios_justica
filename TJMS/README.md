@@ -11,11 +11,9 @@
 
 Este sistema coleta os cadernos 2 e 3 do diário de justiça.
 
-Para dar inicio ao processo é necessário inserir a data de início e de final.
+Para dar inicio ao processo é necessário inserir a data de início e de final no formato indicado pelo sistema separados por traço (dd-mm-aaaa).
 
 ##### Importante:
-
-O formato da data a ser inserida é MÊS-DIA-ANO
 
 Recomedamos selecionar o período de um ano por vez.
 
@@ -52,9 +50,7 @@ Index |  Tupla  | Quantidade |
 
  __(recortamos apenas o valor antes do ponto (.) e unimos um tupla com size e flag, respectivamente; organizando a frequência como descendente e escolhendo os 4 primeiros)__
 
-Como se nota, destaca-se muito nos textos a tupla *size/flag* nos valores *7* e *0*. Isso indica que a maioria dos textos do diário possui essa configuração. Contudo, analisando as demais verificamos que em alguns casos raros, também as tuplas *10/0* e *7/16* também podem trazer informações do processo contendo textos que fazem parte da publicação.
-
-A tupla 9/4 apenas traz alguns subtítulos e números das páginas.
+Como se nota, destaca-se muito nos textos a tupla *size/flag* nos valores *8* e *0*. Isso indica que a maioria dos textos do diário possui essa configuração. Contudo, analisando as demais verificamos que também a tupla *8/16* também podem trazer informações do processo contendo textos que fazem parte da publicação.
 
 Com base nesse estudo, foram selecionados dos diários apenas os textos com as formatações 1 e 2. Sendo que o padrão 2 são sempre as linhas com o número do processo nesse caso.
 
@@ -89,5 +85,11 @@ Nos testes que realizamos tivemos os seguintes resultados:
 - Anos testados: 2019
 
 
+### Assunto e Comarca
 
+O array de assuntos foram construídos de acordo com uma série de casos em que essa informação era facilmente identificável.
+
+O módulo tanto dos assuntos quanto das comarcas retorna uma lista iterável. No caso so assuntos, cada item é testado na forma
+de uma expressão regular. Por sua vez, a comarca é identificável pelo código presente dos 4 últimos dígitos do  número do
+processo no padrão CNJ.
 

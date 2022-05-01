@@ -24,6 +24,7 @@ import shutil
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
+from datetime import datetime
 
 
 
@@ -131,14 +132,18 @@ def Gera_dias_uteis():
 
 	# usuário escolhe as datas inicias e finais
 
-	data_inicial = input("digite a data inicial(mm-dd-aaaa): ")
-	data_final = input("digite a data final(mm-dd-aaaa): ")
+	inicial = input("digite a data inicial(dd-mm-aaaa): ")
+	final = input("digite a data final(dd-mm-aaaa): ")
+
+	# converte as strings da data para o formato data
+
+	data_inicial = datetime.strptime(inicial, '%d-%m-%Y').date()
+	data_final = datetime.strptime(final, '%d-%m-%Y').date()
 
 
 	# gera a lista de datas
 
 	date_list = pd.date_range(start= data_inicial, end = data_final)
-	# print(date_list)
 
 	#separa o ano
 	ano = int(date_list[0].strftime("%Y"))
