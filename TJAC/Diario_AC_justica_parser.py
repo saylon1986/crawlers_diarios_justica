@@ -6,6 +6,9 @@ import os, re
 import fitz
 import random
 import json
+from array_Estados import Comarcas
+from tipos_processuais import tipos_processuais
+from assuntos import assuntos_proc
 
 
 
@@ -63,22 +66,30 @@ def sep_representante(public):
 	
 def classificacao_quali(planilha):
 
-	termos = pd.read_excel("Termos_limpos_dicionario.xlsx", engine ='openpyxl')
-	
-	# print("a planinha tem",len(planilha["publicacoes"]),"\n")
 
 	comarcas = []
 	tipos_proces =[]
 	oabs =[]
-	total = 0
+	assuntos =[]
+
+	# recebe as listas do arrays dos tipos processuais e dos assuntos
+
+	termos = tipos_processuais()
+	assuntos_list = assuntos_proc()
 
 	for public,num,est in tqdm(zip(planilha["publicacao"],planilha["numero_processo"],planilha["estado"])):
 		
 		
 		###### parte de verificar os tipos processuais 
-		try:	
-			publis = public.replace("\n","") # eliminar as quebras de linhas para pontecializar o regex
+		try:
+			# docum = open("teste_2.txt", encoding ="utf-8")
+			# public = docum.read()
+			# print(public[6].encode())
+			publis = re.sub(r"\n"," ",public)# eliminar as quebras de linhas para pontecializar o regex
+			# print(publis)
+			# z = input("")
 			# procurar apenas no começo da publicação
+	
 
 			if len(publis) <= 1000: # se a publicação tiver até 1000 caracteres, procura no texto todo
 				publis = publis
@@ -89,34 +100,69 @@ def classificacao_quali(planilha):
 					vlr = 350
 				publis = publis[0:vlr] # fora isso, pesquisar nos 10% primeiros caracteres da publicação
 				# public_pt_final = publis[vlr:] # ou nos 10% no caso da variável da data da decisão
+			
+			trecho_publis = publis.lower()
+			# print(trecho_publis)
 
 			tipo = "" # tipo recebe valor em branco
 
 			# itera sobre o dicionário de tipos processuais
-			for n in range(len(termos["termos_processuais"])):
-				rgx = termos ["termos_processuais"][n]
-				rgx = rgx.replace("\n","") #elimina eventuais quebras de linhas no regex tbem
-				
+			for n in range(len(termos)):
+				rgx = termos [n]
+				rgx = re.sub(r"\n"," ",rgx)
 				# tenta encontrar o tipo na publicação
 				try:
-					if re.search(rgx, publis, re.IGNORECASE): 
-						tipo = re.search(rgx, publis, re.IGNORECASE).group()
-						tipo = tipo.lower() # se encontrar normaliza para minúscula e grava na variável
+					if re.search(rgx, trecho_publis, re.IGNORECASE): 
+						tipo = termos[n]# se encontrar normaliza para minúscula e grava na variável
 						# print(tipo)
 						break
 				except:
-					pass		
+					pass
 
 			# junta o a variável tipo na lista		
-			tipos_proces.append(tipo)
-			if tipo =="": # contabiliza as que não encontrou
-				total = total+1
+			tipos_proces.append(tipo.strip())
+			# z=input("")
+			
 
 		# em caso de erro também insere o vazio 
 		except:
 			tipo = ""
 			tipos_proces.append(tipo)
-			total = total+1	
+			
+
+
+		########## assunto ##################	
+		try:
+			assunto = "" # tipo recebe valor em branco
+
+
+			# itera sobre o dicionário de tipos processuais
+			for l in range(len(assuntos_list)):
+				rgx_as = assuntos_list[l]
+				rgx_as = re.sub(r"\n"," ",rgx_as) #elimina eventuais quebras de linhas no regex tbem
+				
+				if re.search("assunto:",trecho_publis,re.MULTILINE):
+					quebras = re.split("assunto:",trecho_publis)
+					trecho_publis = quebras[1][:50]
+				
+				# tenta encontrar o tipo na publicação
+				try:
+					if re.search(rgx_as, trecho_publis, re.IGNORECASE): 
+						assunto = assuntos_list[l] # se encontrar normaliza para minúscula e grava na variável
+						# print(assunto,rgx_as, l)
+						# z=input("")
+						break
+				except:
+					pass
+
+			# junta o a variável tipo na lista		
+			assuntos.append(assunto)
+		
+
+		# em caso de erro também insere o vazio 
+		except:
+			assunto = ""
+			assuntos.append(assunto)
 
 
 	########### Parte de inserir a comarca
@@ -152,8 +198,10 @@ def classificacao_quali(planilha):
 	planilha ["tipos_processuais"] = tipos_proces
 	planilha["comarcas"] = comarcas
 	planilha["representantes"] = oabs
+	planilha["assuntos"] = assuntos
 
 	return planilha
+
 
 #################################################  Função que separa os textos dos diários  #################################################
 
@@ -346,7 +394,7 @@ def Juntar_blocks(numeros_paginas,nome_doc, nomes_pastas, txt_unific, ano):
 	df_textos_paginas["numeros_paginas"] = num_pags
 	df_textos_paginas["nome_documento"] = nome_docs
 	df_textos_paginas["nomes_pastas"] = nome_pst
-	df_textos_paginas["estado"] = "AM"	
+	df_textos_paginas["estado"] = "AC"	
 
 	
 
@@ -387,23 +435,24 @@ def Juntar_blocks(numeros_paginas,nome_doc, nomes_pastas, txt_unific, ano):
 	df_textos_paginas["data_decisao"] = ""
 	df_textos_paginas["orgao_julgador"] = ""
 
-	df_textos_paginas = df_textos_paginas[["numero_processo", "estado","publicacao","numeros_paginas","tipos_processuais","comarcas",
+	df_textos_paginas = df_textos_paginas[["numero_processo", "estado","publicacao","numeros_paginas","tipos_processuais","assuntos","comarcas",
 	"representantes","dia", "mes","ano","nome_documento","nomes_pastas","data_decisao","orgao_julgador"]]
 
 	# gera o excel com o DF final
 
-	# df_textos_paginas.to_excel("Diarios_publicacoes_AM_"+ano+".xlsx", index = False)
+	df_textos_paginas.to_excel("Diarios_publicacoes_AC_"+ano+".xlsx", index = False)
 
 	# converte para JSON
 
 	result = df_textos_paginas.to_json(orient="records", force_ascii = False)
 	parsed = json.loads(result)
-	with open('data_AM.json', 'w', encoding ='utf-8') as fp:
+	with open('data_AC_'+ano+'.json', 'w', encoding ='utf-8') as fp:
 		json.dump(parsed, fp)
+
 
 	# time.sleep(5)	
 
-	# with open('data_AM.json', 'r', encoding ='utf-8') as fp:
+	# with open('data_AC.json', 'r', encoding ='utf-8') as fp:
 	# 	data = json.loads(fp.read())
 	# 	print(json.dumps(data, indent = 4, ensure_ascii=False))
 
